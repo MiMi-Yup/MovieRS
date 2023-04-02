@@ -95,14 +95,16 @@ namespace MovieRS.API.Core.Repositories
             } : null;
         }
 
-        public Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchMovie>> SearchMovie(string query)
+        public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> SearchMovie(string query, int year = 0, string? region = null, int primaryReleaseYear = 0, int page = 1)
         {
-            return _tmdb.Client.SearchMovieAsync(query);
-        }
-
-        public Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchPerson>> SearchPeople(string query)
-        {
-            return _tmdb.Client.SearchPersonAsync(query);
+            var movie = await _tmdb.Client.SearchMovieAsync(query, page: page, year: year, region: region, primaryReleaseYear: primaryReleaseYear);
+            return movie != null ? new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
+            {
+                Page = movie.Page,
+                TotalPages = movie.TotalPages,
+                TotalResults = movie.TotalResults,
+                Results = (await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)))).ToList()
+            } : null;
         }
     }
 }

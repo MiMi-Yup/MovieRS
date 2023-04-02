@@ -8,7 +8,7 @@ using MovieRS.API.Dtos.User;
 namespace MovieRS.API.Controllers
 {
     [ApiController]
-    [Route("api/movie")]
+    [Route("api/[controller]")]
     [Authorize]
     public class MovieController : ControllerBase
     {

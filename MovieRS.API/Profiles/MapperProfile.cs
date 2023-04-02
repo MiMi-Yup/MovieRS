@@ -35,6 +35,13 @@ namespace MovieRS.API.Profiles
             CreateMap<TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>, SearchContainerWithDataRangeDto<MovieDto>>()
                 .ForMember(item => item.StartDate, options => options.MapFrom(item => item.Dates.Minimum))
                 .ForMember(item => item.EndDate, options => options.MapFrom(item => item.Dates.Maximum));
+
+            CreateMap<TMDbLib.Objects.People.Person, PersonDto>().
+                ForMember(item => item.Images, options => options.MapFrom(item => item.Images.Profiles));
+
+            CreateMap<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.People.Person>, SearchContainerDto<PersonDto>>();
+
+            CreateMap<TMDbLib.Objects.People.MovieRoleExtension, MovieRoleActDto>();
         }
     }
 }

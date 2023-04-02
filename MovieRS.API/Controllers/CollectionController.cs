@@ -7,7 +7,7 @@ using MovieRS.API.Dtos.Movie;
 namespace MovieRS.API.Controllers
 {
     [ApiController]
-    [Route("api/collection")]
+    [Route("api/[controller]")]
     [Authorize]
     public class CollectionController : ControllerBase
     {

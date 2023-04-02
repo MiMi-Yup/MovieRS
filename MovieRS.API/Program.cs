@@ -13,7 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.ConfigureCors();
-builder.Services.AddDbContext<MovieRsContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddDbContext<MovieRsContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Testing")));
 builder.Services.ConfigureAuthentication(builder.Configuration);
 builder.Services.ConfigureExternalAPI();
 builder.Services.AddSwaggerGen(options => options.ConfigureSwaggerOptions());

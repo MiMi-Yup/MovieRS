@@ -12,7 +12,6 @@
         Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetTopRated();
 
         
-        Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchMovie>> SearchMovie(string query);
-        Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchPerson>> SearchPeople(string query);
+        Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> SearchMovie(string query, int year = 0, string? region = null, int primaryReleaseYear = 0, int page = 1);
     }
 }
