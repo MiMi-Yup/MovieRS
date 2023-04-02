@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Microsoft.Extensions.Hosting;
+using MovieRS.API.Dtos.Movie;
 using MovieRS.API.Dtos.User;
 using MovieRS.API.Models;
-using Newtonsoft.Json;
 
 namespace MovieRS.API.Profiles
 {
@@ -16,6 +15,8 @@ namespace MovieRS.API.Profiles
 
             CreateMap<User, UserDto>()
                 .ForMember(item => item.Country, options => options.MapFrom(item => item.Country == null ? null : item.Country.Name));
+
+            CreateMap<TMDbLib.Objects.Movies.Movie, MovieDto>();
         }
     }
 }

@@ -15,8 +15,9 @@ namespace MovieRS.API.Core.Repositories
         public IUserRepository User { get; private set; }
         public ICountryRepository Country { get; private set; }
         public IRecommendRepository Recommend { get; private set; }
+        public IMovieRepository Movie { get; private set; }
 
-        public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration)
+        public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration, ITMDb tmdb)
         {
             _context = context;
             _mapper = mapper;
@@ -25,6 +26,7 @@ namespace MovieRS.API.Core.Repositories
 
             Country = new CountryRepository(_context, _logger, _mapper, _configuration);
             User = new UserRepository(_context, _configuration, Country, _logger, _mapper);
+            Movie = new MovieRepository(_context, tmdb, _logger, mapper);
             /*Recommend = new RecommendRepository(context, _logger, _mapper, this, _configuration);*/
         }
 
