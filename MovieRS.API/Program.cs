@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using MovieRS.API.Extensions;
 using MovieRS.API.Middlewares;
+using MovieRS.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +13,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.ConfigureCors();
-builder.Services.ConfigureDatabase();
+builder.Services.AddDbContext<MovieRsContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Testing")));
 builder.Services.ConfigureAuthentication(builder.Configuration);
+builder.Services.ConfigureExternalAPI();
 builder.Services.AddSwaggerGen(options => options.ConfigureSwaggerOptions());
 builder.Services.ConfigureRepositorysitory();
 builder.Services.AddAutoMapper(typeof(Program));

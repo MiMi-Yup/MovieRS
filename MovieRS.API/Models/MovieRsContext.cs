@@ -12,8 +12,6 @@ public partial class MovieRsContext : DbContext
         _configuration = configuration;
     }
 
-
-
     public MovieRsContext(DbContextOptions<MovieRsContext> options, IConfiguration configuration)
         : base(options)
     {
@@ -34,14 +32,11 @@ public partial class MovieRsContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer(_configuration.GetConnectionString("Default"));
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Country>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__COUNTRY__3214EC073E937B47");
+            entity.HasKey(e => e.Id).HasName("PK__COUNTRY__3214EC077A9657E6");
 
             entity.ToTable("COUNTRY");
 
@@ -57,7 +52,7 @@ public partial class MovieRsContext : DbContext
 
         modelBuilder.Entity<Genre>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__GENRE__3214EC078EDD3894");
+            entity.HasKey(e => e.Id).HasName("PK__GENRE__3214EC0726441A9B");
 
             entity.ToTable("GENRE");
 
@@ -85,7 +80,7 @@ public partial class MovieRsContext : DbContext
 
         modelBuilder.Entity<Movie>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__MOVIE__3214EC07E944DA78");
+            entity.HasKey(e => e.Id).HasName("PK__MOVIE__3214EC0737DEC4EC");
 
             entity.ToTable("MOVIE");
 
@@ -116,11 +111,11 @@ public partial class MovieRsContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__USER___3214EC0730E69BCA");
+            entity.HasKey(e => e.Id).HasName("PK__USER___3214EC07217EB26D");
 
             entity.ToTable("USER_");
 
-            entity.HasIndex(e => e.Email, "UQ__USER___A9D10534BEE08F0D").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__USER___A9D105347EF16793").IsUnique();
 
             entity.Property(e => e.Email)
                 .HasMaxLength(255)

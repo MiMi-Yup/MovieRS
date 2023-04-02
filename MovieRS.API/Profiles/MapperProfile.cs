@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Microsoft.Extensions.Hosting;
+using MovieRS.API.Dtos.Movie;
 using MovieRS.API.Dtos.User;
 using MovieRS.API.Models;
-using Newtonsoft.Json;
 
 namespace MovieRS.API.Profiles
 {
@@ -16,6 +15,26 @@ namespace MovieRS.API.Profiles
 
             CreateMap<User, UserDto>()
                 .ForMember(item => item.Country, options => options.MapFrom(item => item.Country == null ? null : item.Country.Name));
+
+            CreateMap<TMDbLib.Objects.Movies.Movie, MovieDto>();
+
+            CreateMap<TMDbLib.Objects.General.ImageData, ImageDataDto>();
+
+            CreateMap<TMDbLib.Objects.General.ImagesWithId, ImageDto>();
+
+            CreateMap<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>, SearchContainerDto<MovieDto>>();
+
+            CreateMap<TMDbLib.Objects.Reviews.AuthorDetails, UserDto>()
+                .ForMember(item => item.Username, options => options.MapFrom(item => item.Username))
+                .ForMember(item => item.Id, options => options.MapFrom(item => 0));
+
+            CreateMap<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>, SeachContainerWithIdDto<ReviewDto>>();
+
+            CreateMap<TMDbLib.Objects.Collections.Collection, CollectionMovieDto>();
+
+            CreateMap<TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>, SearchContainerWithDataRangeDto<MovieDto>>()
+                .ForMember(item => item.StartDate, options => options.MapFrom(item => item.Dates.Minimum))
+                .ForMember(item => item.EndDate, options => options.MapFrom(item => item.Dates.Maximum));
         }
     }
 }

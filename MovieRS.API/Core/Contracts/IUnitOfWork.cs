@@ -4,5 +4,7 @@
     {
         IUserRepository User { get; }
         ICountryRepository Country { get; }
+        IMovieRepository Movie { get; }
+        ICollectionRepository CollectionMovie { get; }
     }
 }

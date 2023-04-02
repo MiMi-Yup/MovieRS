@@ -20,11 +20,11 @@ namespace MovieRS.API.Extensions
             .AllowAnyHeader().AllowCredentials());
         });
 
-        public static void ConfigureDatabase(this IServiceCollection services) =>
-            services.AddScoped<MovieRsContext, MovieRsContext>();
-
         public static void ConfigureRepositorysitory(this IServiceCollection services) =>
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        public static void ConfigureExternalAPI(this IServiceCollection services) =>
+            services.AddScoped<ITMDb, TMDbAPI>();
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
@@ -36,7 +36,7 @@ namespace MovieRS.API.Extensions
             {
                 var Key = Encoding.UTF8.GetBytes(configuration["JWT:Key"]);
                 o.SaveToken = true;
-                /*o.TokenValidationParameters = new TokenValidationParameters
+                o.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = false,
                     ValidateAudience = false,
@@ -45,7 +45,7 @@ namespace MovieRS.API.Extensions
                     ValidIssuer = configuration["JWT:Issuer"],
                     ValidAudience = configuration["JWT:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Key)
-                };*/
+                };
             });
         }
 
