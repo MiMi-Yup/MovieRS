@@ -9,7 +9,7 @@ namespace MovieRS.API.Dtos.Movie
         public string? BackdropPath { get; set; }
         public long? Budget { get; set; }
         public List<Genre>? Genres { get; set; }
-        public int? Id { get; set; }
+        public int Id { get; set; }
         public string? ImdbId { get; set; }
         public string? OriginalTitle { get; set; }
         public string? Overview { get; set; }

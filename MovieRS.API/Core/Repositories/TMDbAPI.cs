@@ -12,19 +12,26 @@ namespace MovieRS.API.Core.Repositories
         {
             _configuration = configuration;
             Client = new TMDbClient(_configuration["TMDB:API_Key"]);
-            ChangeToVN();
+            ChangeLanguage("vi");
         }
 
-        public void ChangeToEN()
+        public void ChangeLanguage(string? lang)
         {
-            Client.DefaultLanguage = "en";
-            Client.DefaultCountry = "US";
-        }
-
-        public void ChangeToVN()
-        {
-            Client.DefaultLanguage = "vi";
-            Client.DefaultCountry = "VN";
+            switch (lang)
+            {
+                case "en":
+                    Client.DefaultLanguage = "en";
+                    Client.DefaultCountry = "US";
+                    break;
+                case "vi":
+                    Client.DefaultLanguage = "vi";
+                    Client.DefaultCountry = "VN";
+                    break;
+                default:
+                    Client.DefaultLanguage = null;
+                    Client.DefaultCountry = null;
+                    break;
+            }
         }
     }
 }
