@@ -7,7 +7,7 @@ namespace MovieRS.API.Profiles
 {
     public class MapperProfile : Profile
     {
-        private string PrefixImage(string path) => $"https://movie-rs.azurewebsites.net/image{path}";
+        private string PrefixImage(string path) => $"https://movie-rs.azurewebsites.net/api/image{path}";
         public MapperProfile()
         {
             CreateMap<int?, int>().ConvertUsing((src, dest) => src ?? dest);
