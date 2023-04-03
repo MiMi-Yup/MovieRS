@@ -58,16 +58,6 @@ namespace MovieRS.API.Controllers
             }
         }
 
-        /*[HttpGet]
-        [Route("verify")]
-        [Protect]
-        public IActionResult Verify()
-        {
-            User? user = HttpContext.Items["User"] as User;
-            UserDto dto = _mapper.Map<UserDto>(user);
-            return Ok(new ApiResponse<UserDto>(dto, "Verify successfully"));
-        }*/
-
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register(RegisterUserDto newUser)
@@ -109,11 +99,7 @@ namespace MovieRS.API.Controllers
             User newUser = await _unitOfWork.User.CreateNewUser(registerData);
             TokenAccountMap.Remove(data.Email);
             UserDto returnUser = _mapper.Map<UserDto>(newUser);
-            return Ok(new
-            {
-                message = "Verify account successfully!",
-                data = returnUser
-            });
+            return Ok(new ApiResponse<UserDto>(returnUser, "Verify account successfully!"));
         }
 
         private string GenerateCode()
