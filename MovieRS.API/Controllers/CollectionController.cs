@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieRS.API.Core.Contracts;
+using MovieRS.API.Dtos;
 using MovieRS.API.Dtos.Movie;
+using MovieRS.API.Error;
 
 namespace MovieRS.API.Controllers
 {
@@ -24,11 +26,13 @@ namespace MovieRS.API.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        [Produces(typeof(CollectionMovieDto))]
+        [Produces(typeof(ApiResponse<CollectionMovieDto>))]
         public async Task<IActionResult> Collection(int id)
         {
             var collection = await _unitOfWork.CollectionMovie.GetCollection(id);
-            return collection == null ? NotFound() : Ok(_mapper.Map<CollectionMovieDto>(collection));
+            return collection == null 
+                ? NotFound(new ApiException("Id not exist", null)) 
+                : Ok(new ApiResponse<CollectionMovieDto>(_mapper.Map<CollectionMovieDto>(collection), message: "OK"));
         }
     }
 }

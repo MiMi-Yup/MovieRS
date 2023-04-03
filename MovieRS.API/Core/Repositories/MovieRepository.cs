@@ -3,10 +3,11 @@ using MovieRS.API.Core.Contracts;
 using MovieRS.API.Models;
 using TMDbLib.Client;
 using TMDbLib.Objects.General;
+using TMDbLib.Objects.Movies;
 
 namespace MovieRS.API.Core.Repositories
 {
-    public class MovieRepository : GenericRepository<Movie>, IMovieRepository
+    public class MovieRepository : GenericRepository<MovieRS.API.Models.Movie>, IMovieRepository
     {
         private readonly ITMDb _tmdb;
 
@@ -28,76 +29,120 @@ namespace MovieRS.API.Core.Repositories
             return _tmdb.Client.GetMovieAsync(id);
         }
 
-        public async Task<TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>?> GetNowPlaying()
+        public async Task<TMDbLib.Objects.Movies.CreditsExtension?> GetActors(IPersonRepository repository, int id)
         {
-            var movie = await _tmdb.Client.GetMovieNowPlayingListAsync();
-            return movie != null ? new TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>
+            TMDbLib.Objects.Movies.Credits credits = await _tmdb.Client.GetMovieCreditsAsync(id);
+            if (credits != null)
             {
-                Dates = movie.Dates,
-                Page = movie.Page,
-                TotalPages = movie.TotalPages,
-                TotalResults = movie.TotalResults,
-                Results = (await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)))).ToList()
-            } : null;
+                return new TMDbLib.Objects.Movies.CreditsExtension
+                {
+                    Id = credits.Id,
+                    Cast = (await Task.WhenAll(credits.Cast.Select(async item =>
+                    {
+                        TMDbLib.Objects.Movies.CastExtension cast = item.Convert();
+                        cast.Person = await repository.GetPerson(item.Id);
+                        return cast;
+                    }))).ToList()
+                };
+            }
+            return null;
         }
 
-        public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetPopular()
+        public async Task<TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>?> GetNowPlaying(int page = 1, int take = 0)
         {
-            var movie = await _tmdb.Client.GetMoviePopularListAsync();
-            return movie != null ? new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
+            var movie = await _tmdb.Client.GetMovieNowPlayingListAsync(page: page < 1 ? 1 : page);
+            if (movie != null)
             {
-                Page = movie.Page,
-                TotalPages = movie.TotalPages,
-                TotalResults = movie.TotalResults,
-                Results = (await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)))).ToList()
-            } : null;
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)));
+                return new TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>
+                {
+                    Dates = movie.Dates,
+                    Page = movie.Page,
+                    TotalPages = movie.TotalPages,
+                    TotalResults = movie.TotalResults,
+                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                };
+            }
+            return null;
         }
 
-        public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetRecommendation(int id, int page = 1)
+        public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetPopular(int page = 1, int take = 0)
+        {
+            var movie = await _tmdb.Client.GetMoviePopularListAsync(page: page < 1 ? 1 : page);
+            if (movie != null)
+            {
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)));
+                return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
+                {
+                    Page = movie.Page,
+                    TotalPages = movie.TotalPages,
+                    TotalResults = movie.TotalResults,
+                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                };
+            }
+            return null;
+        }
+
+        public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetRecommendation(int id, int page = 1, int take = 0)
         {
             var recommendation = await _tmdb.Client.GetMovieRecommendationsAsync(id, page);
-            return recommendation != null ? new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
+            if (recommendation != null)
             {
-                Page = recommendation.Page,
-                TotalPages = recommendation.TotalPages,
-                TotalResults = recommendation.TotalResults,
-                Results = (await Task.WhenAll(recommendation.Results.Select(item => GetMovie(item.Id)))).ToList()
-            } : null;
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(recommendation.Results.Select(item => GetMovie(item.Id)));
+                return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
+                {
+                    Page = recommendation.Page,
+                    TotalPages = recommendation.TotalPages,
+                    TotalResults = recommendation.TotalResults,
+                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                };
+            }
+            return null;
         }
 
-        public Task<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>> GetReview(int id)
+        public Task<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>> GetReview(int id, int page = 1)
         {
-            return _tmdb.Client.GetMovieReviewsAsync(id);
+            return _tmdb.Client.GetMovieReviewsAsync(id, page: page < 1 ? 1 : page);
         }
 
-        public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetTopRated()
+        public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetTopRated(int page = 1, int take = 0)
         {
-            var movie = await _tmdb.Client.GetMovieTopRatedListAsync();
-            return movie != null ? new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
+            var movie = await _tmdb.Client.GetMovieTopRatedListAsync(page: page < 1 ? 1 : page);
+            if (movie != null)
             {
-                Page = movie.Page,
-                TotalPages = movie.TotalPages,
-                TotalResults = movie.TotalResults,
-                Results = (await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)))).ToList()
-            } : null;
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)));
+                return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
+                {
+                    Page = movie.Page,
+                    TotalPages = movie.TotalPages,
+                    TotalResults = movie.TotalResults,
+                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                };
+            }
+            return null;
         }
 
-        public async Task<TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>?> GetUpComming()
+        public async Task<TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>?> GetUpComming(int page = 1, int take = 0)
         {
-            var movie = await _tmdb.Client.GetMovieUpcomingListAsync();
-            return movie != null ? new TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>
+            var movie = await _tmdb.Client.GetMovieUpcomingListAsync(page: page < 1 ? 1 : page);
+            if (movie != null)
             {
-                Dates = movie.Dates,
-                Page = movie.Page,
-                TotalPages = movie.TotalPages,
-                TotalResults = movie.TotalResults,
-                Results = (await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)))).ToList()
-            } : null;
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)));
+                return new TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>
+                {
+                    Dates = movie.Dates,
+                    Page = movie.Page,
+                    TotalPages = movie.TotalPages,
+                    TotalResults = movie.TotalResults,
+                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                };
+            }
+            return null;
         }
 
         public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> SearchMovie(string query, int year = 0, string? region = null, int primaryReleaseYear = 0, int page = 1)
         {
-            var movie = await _tmdb.Client.SearchMovieAsync(query, page: page, year: year, region: region, primaryReleaseYear: primaryReleaseYear);
+            var movie = await _tmdb.Client.SearchMovieAsync(query, page: page < 1 ? 1 : page, year: year, region: region, primaryReleaseYear: primaryReleaseYear);
             return movie != null ? new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
             {
                 Page = movie.Page,

@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieRS.API.Core.Contracts;
+using MovieRS.API.Dtos;
 using MovieRS.API.Dtos.Movie;
+using MovieRS.API.Error;
 
 namespace MovieRS.API.Controllers
 {
@@ -24,20 +26,24 @@ namespace MovieRS.API.Controllers
 
         [HttpGet]
         [Route("movie/{query}")]
-        [Produces(typeof(SearchContainerDto<MovieDto>))]
+        [Produces(typeof(ApiResponse<SearchContainerDto<MovieDto>>))]
         public async Task<IActionResult> Search(string query, [FromQuery] int? page, [FromQuery] string? region, [FromQuery] int? year, [FromQuery] int? primaryReleaseYear)
         {
             var movie = await _unitOfWork.Movie.SearchMovie(query, year ?? 0, region, primaryReleaseYear ?? 0, page ?? 1);
-            return movie == null ? NotFound() : Ok(_mapper.Map<SearchContainerDto<MovieDto>>(movie));
+            return movie == null 
+                ? BadRequest(new ApiException("Something wrong", System.Net.HttpStatusCode.BadRequest)) 
+                : Ok(new ApiResponse<SearchContainerDto<MovieDto>>(_mapper.Map<SearchContainerDto<MovieDto>>(movie), "OK"));
         }
 
         [HttpGet]
         [Route("person/{query}")]
-        [Produces(typeof(SearchContainerDto<PersonDto>))]
+        [Produces(typeof(ApiResponse<SearchContainerDto<PersonDto>>))]
         public async Task<IActionResult> Search(string query, [FromQuery] int? page, [FromQuery] string? region)
         {
             var person = await _unitOfWork.Person.SearchPerson(query, page ?? 1, region);
-            return person == null ? NotFound() : Ok(_mapper.Map<SearchContainerDto<PersonDto>>(person));
+            return person == null 
+                ? BadRequest(new ApiException("Something wrong", System.Net.HttpStatusCode.BadRequest))
+                : Ok(new ApiResponse<SearchContainerDto<PersonDto>>(_mapper.Map<SearchContainerDto<PersonDto>>(person), "OK"));
         }
 
         /*[HttpGet]

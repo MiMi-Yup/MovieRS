@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MovieRS.API.Attributes;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;
 using MovieRS.API.Dtos.User;
+using MovieRS.API.Error;
 using MovieRS.API.Models;
 
 namespace MovieRS.API.Controllers
@@ -31,7 +31,9 @@ namespace MovieRS.API.Controllers
         public IActionResult GetUser()
         {
             User? user = HttpContext.Items["User"] as User;
-            return user == null ? NotFound() : Ok(new ApiResponse<UserDto>(_mapper.Map<UserDto>(user), "OK"));
+            return user == null 
+                ? BadRequest(new ApiException("Something wrong", System.Net.HttpStatusCode.BadRequest))
+                : Ok(new ApiResponse<UserDto>(_mapper.Map<UserDto>(user), "OK"));
         }
     }
 }

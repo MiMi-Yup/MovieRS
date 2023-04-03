@@ -52,6 +52,12 @@ namespace MovieRS.API.Profiles
             CreateMap<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.People.Person>, SearchContainerDto<PersonDto>>();
 
             CreateMap<TMDbLib.Objects.People.MovieRoleExtension, MovieRoleActDto>();
+
+            CreateMap<TMDbLib.Objects.Movies.CastExtension, CastDto>();
+
+            CreateMap<TMDbLib.Objects.Movies.CreditsExtension, CreditsDto>();
+
+            CreateMap<TMDbLib.Objects.People.MovieCreditsExtension, MovieCreditsDto>();
         }
     }
 }

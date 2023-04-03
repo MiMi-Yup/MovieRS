@@ -32,8 +32,8 @@ namespace MovieRS.API.Core.Repositories
             Country = new CountryRepository(_context, _logger, _mapper, _configuration);
             User = new UserRepository(_context, _configuration, Country, _logger, _mapper);
             Movie = new MovieRepository(_context, _logger, _mapper, _tmdb);
+            Person = new PersonRepository(_tmdb);
             CollectionMovie = new CollectionRepository(_context, _logger, _mapper, _tmdb, Movie);
-            Person = new PersonRepository(_tmdb, Movie);
             Image = new ImageRepository(_tmdb);
 
             /*Recommend = new RecommendRepository(context, _logger, _mapper, this, _configuration);*/

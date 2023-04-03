@@ -6,12 +6,10 @@ namespace MovieRS.API.Core.Repositories
     public class PersonRepository : IPersonRepository
     {
         private readonly ITMDb _tmdb;
-        private readonly IMovieRepository _movieRepository;
 
-        public PersonRepository(ITMDb tmdb, IMovieRepository movieRepository)
+        public PersonRepository(ITMDb tmdb)
         {
             _tmdb = tmdb;
-            _movieRepository = movieRepository;
         }
 
         public Task<TMDbLib.Objects.People.Person> GetPerson(int id)
@@ -22,16 +20,16 @@ namespace MovieRS.API.Core.Repositories
             return task;
         }
 
-        public async Task<TMDbLib.Objects.People.MovieCreditExtension?> GetMovieAct(int id)
+        public async Task<TMDbLib.Objects.People.MovieCreditsExtension?> GetMovieAct(IMovieRepository repository, int id)
         {
             var movie = await _tmdb.Client.GetPersonMovieCreditsAsync(id);
-            return movie != null ? new TMDbLib.Objects.People.MovieCreditExtension
+            return movie != null ? new TMDbLib.Objects.People.MovieCreditsExtension
             {
                 Id = movie.Id,
                 Cast = (await Task.WhenAll(movie.Cast.Select(async item =>
                 {
                     TMDbLib.Objects.People.MovieRoleExtension role = item.Convert();
-                    role.Movie = await _movieRepository.GetMovie(item.Id);
+                    role.Movie = await repository.GetMovie(item.Id);
                     return role;
                 }))).ToList()
             } : null;
