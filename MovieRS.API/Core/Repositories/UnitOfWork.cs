@@ -19,6 +19,7 @@ namespace MovieRS.API.Core.Repositories
         public IMovieRepository Movie { get; private set; }
         public ICollectionRepository CollectionMovie { get; private set; }
         public IPersonRepository Person { get; private set; }
+        public IImageRepository Image { get; private set; }
 
         public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration, ITMDb tmdb)
         {
@@ -33,6 +34,7 @@ namespace MovieRS.API.Core.Repositories
             Movie = new MovieRepository(_context, _logger, _mapper, _tmdb);
             CollectionMovie = new CollectionRepository(_context, _logger, _mapper, _tmdb, Movie);
             Person = new PersonRepository(_tmdb, Movie);
+            Image = new ImageRepository(_tmdb);
 
             /*Recommend = new RecommendRepository(context, _logger, _mapper, this, _configuration);*/
         }

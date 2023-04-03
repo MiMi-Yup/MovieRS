@@ -7,6 +7,7 @@ namespace MovieRS.API.Profiles
 {
     public class MapperProfile : Profile
     {
+        private string PrefixImage(string path) => $"https://movie-rs.azurewebsites.net/image{path}";
         public MapperProfile()
         {
             CreateMap<int?, int>().ConvertUsing((src, dest) => src ?? dest);
@@ -16,9 +17,16 @@ namespace MovieRS.API.Profiles
             CreateMap<User, UserDto>()
                 .ForMember(item => item.Country, options => options.MapFrom(item => item.Country == null ? null : item.Country.Name));
 
-            CreateMap<TMDbLib.Objects.Movies.Movie, MovieDto>();
+            CreateMap<TMDbLib.Objects.Search.SearchCollection, SearchCollectionDto>()
+                .ForMember(item => item.PosterPath, options => options.MapFrom(item => PrefixImage(item.PosterPath)))
+                .ForMember(item => item.BackdropPath, options => options.MapFrom(item => PrefixImage(item.BackdropPath)));
 
-            CreateMap<TMDbLib.Objects.General.ImageData, ImageDataDto>();
+            CreateMap<TMDbLib.Objects.Movies.Movie, MovieDto>()
+                .ForMember(item => item.PosterPath, options => options.MapFrom(item => PrefixImage(item.PosterPath)))
+                .ForMember(item => item.BackdropPath, options => options.MapFrom(item => PrefixImage(item.BackdropPath)));
+
+            CreateMap<TMDbLib.Objects.General.ImageData, ImageDataDto>()
+                .ForMember(item => item.FilePath, options => options.MapFrom(item => PrefixImage(item.FilePath)));
 
             CreateMap<TMDbLib.Objects.General.ImagesWithId, ImageDto>();
 
@@ -30,13 +38,16 @@ namespace MovieRS.API.Profiles
 
             CreateMap<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>, SeachContainerWithIdDto<ReviewDto>>();
 
-            CreateMap<TMDbLib.Objects.Collections.Collection, CollectionMovieDto>();
+            CreateMap<TMDbLib.Objects.Collections.Collection, CollectionMovieDto>()
+                .ForMember(item => item.PosterPath, options => options.MapFrom(item => PrefixImage(item.PosterPath)))
+                .ForMember(item => item.BackdropPath, options => options.MapFrom(item => PrefixImage(item.BackdropPath)));
 
             CreateMap<TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>, SearchContainerWithDataRangeDto<MovieDto>>()
                 .ForMember(item => item.StartDate, options => options.MapFrom(item => item.Dates.Minimum))
                 .ForMember(item => item.EndDate, options => options.MapFrom(item => item.Dates.Maximum));
 
-            CreateMap<TMDbLib.Objects.People.Person, PersonDto>();
+            CreateMap<TMDbLib.Objects.People.Person, PersonDto>()
+                .ForMember(item => item.ProfilePath, options => options.MapFrom(item => PrefixImage(item.ProfilePath)));
 
             CreateMap<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.People.Person>, SearchContainerDto<PersonDto>>();
 

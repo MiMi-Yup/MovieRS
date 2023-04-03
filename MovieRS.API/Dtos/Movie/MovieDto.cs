@@ -5,7 +5,7 @@ namespace MovieRS.API.Dtos.Movie
 {
     public class MovieDto
     {
-        public SearchCollection? BelongsToCollection { get; set; }
+        public SearchCollectionDto? BelongsToCollection { get; set; }
         public string? BackdropPath { get; set; }
         public long? Budget { get; set; }
         public List<Genre>? Genres { get; set; }

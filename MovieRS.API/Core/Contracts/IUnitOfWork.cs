@@ -7,5 +7,6 @@
         IMovieRepository Movie { get; }
         ICollectionRepository CollectionMovie { get; }
         IPersonRepository Person { get; }
+        IImageRepository Image { get; }
     }
 }
