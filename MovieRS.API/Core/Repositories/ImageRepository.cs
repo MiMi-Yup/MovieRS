@@ -1,4 +1,5 @@
 ﻿using MovieRS.API.Core.Contracts;
+using MovieRS.API.Error;
 
 namespace MovieRS.API.Core.Repositories
 {
@@ -12,9 +13,17 @@ namespace MovieRS.API.Core.Repositories
             _tmdb.Client.GetConfigAsync().Wait();
         }
 
-        public Task<byte[]> GetImage(string path, string size = "original", bool useSsl = true)
+        public async Task<byte[]> GetImage(string path, string size = "original", bool useSsl = true)
         {
-            return _tmdb.Client.GetImageBytesAsync(size, path, useSsl);
+            try
+            {
+                byte[] image = await _tmdb.Client.GetImageBytesAsync(size, path, useSsl);
+                return image;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException(ex.Message, System.Net.HttpStatusCode.NotFound);
+            }
         }
     }
 }

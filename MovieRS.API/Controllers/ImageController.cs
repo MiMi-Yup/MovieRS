@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using MovieRS.API.Core.Contracts;
+using MovieRS.API.Error;
 
 namespace MovieRS.API.Controllers
 {
@@ -23,8 +24,15 @@ namespace MovieRS.API.Controllers
         [Route("{path}")]
         public async Task<IActionResult> GetImage(string path)
         {
-            byte[] image = await _unitOfWork.Image.GetImage($"/{path}");
-            return image == null ? NotFound() : File(image, "image/jpeg", true);
+            try
+            {
+                byte[] image = await _unitOfWork.Image.GetImage($"/{path}");
+                return File(image, "image/jpeg", true);
+            }
+            catch (ApiException)
+            {
+                return NotFound();
+            }
         }
     }
 }
