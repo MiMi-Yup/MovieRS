@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Models;
+using System.Linq;
 using TMDbLib.Client;
 using TMDbLib.Objects.General;
 using TMDbLib.Objects.Movies;
@@ -16,12 +17,18 @@ namespace MovieRS.API.Core.Repositories
             _tmdb = tmdb;
         }
 
-        public Task<TMDbLib.Objects.General.ImagesWithId> GetImages(int id)
+        public async Task<TMDbLib.Objects.General.ImagesWithId> GetImages(int id, int take = 0)
         {
             _tmdb.ChangeLanguage(null);
-            Task<TMDbLib.Objects.General.ImagesWithId> task = _tmdb.Client.GetMovieImagesAsync(id);
+            TMDbLib.Objects.General.ImagesWithId image = await _tmdb.Client.GetMovieImagesAsync(id);
             _tmdb.ChangeLanguage("vi");
-            return task;
+            return new TMDbLib.Objects.General.ImagesWithId
+            {
+                Id = image.Id,
+                Backdrops = image.Backdrops.Take(take > 0 ? take : image.Backdrops.Count).ToList(),
+                Posters = image.Posters.Take(take > 0 ? take : image.Posters.Count).ToList(),
+                Logos = image.Logos.Take(take > 0 ? take : image.Logos.Count).ToList()
+            };
         }
 
         public Task<TMDbLib.Objects.Movies.Movie> GetMovie(int id)
@@ -29,7 +36,7 @@ namespace MovieRS.API.Core.Repositories
             return _tmdb.Client.GetMovieAsync(id);
         }
 
-        public async Task<TMDbLib.Objects.Movies.CreditsExtension?> GetActors(IPersonRepository repository, int id)
+        public async Task<TMDbLib.Objects.Movies.CreditsExtension?> GetActors(IPersonRepository repository, int id, int take = 0)
         {
             TMDbLib.Objects.Movies.Credits credits = await _tmdb.Client.GetMovieCreditsAsync(id);
             if (credits != null)
@@ -37,7 +44,7 @@ namespace MovieRS.API.Core.Repositories
                 return new TMDbLib.Objects.Movies.CreditsExtension
                 {
                     Id = credits.Id,
-                    Cast = (await Task.WhenAll(credits.Cast.Select(async item =>
+                    Cast = (await Task.WhenAll(credits.Cast.Take(take > 0 ? take : credits.Cast.Count).Select(async item =>
                     {
                         TMDbLib.Objects.Movies.CastExtension cast = item.Convert();
                         cast.Person = await repository.GetPerson(item.Id);
@@ -53,14 +60,14 @@ namespace MovieRS.API.Core.Repositories
             var movie = await _tmdb.Client.GetMovieNowPlayingListAsync(page: page < 1 ? 1 : page);
             if (movie != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovie(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>
                 {
                     Dates = movie.Dates,
                     Page = movie.Page,
                     TotalPages = movie.TotalPages,
                     TotalResults = movie.TotalResults,
-                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                    Results = result.ToList()
                 };
             }
             return null;
@@ -71,13 +78,13 @@ namespace MovieRS.API.Core.Repositories
             var movie = await _tmdb.Client.GetMoviePopularListAsync(page: page < 1 ? 1 : page);
             if (movie != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovie(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
                 {
                     Page = movie.Page,
                     TotalPages = movie.TotalPages,
                     TotalResults = movie.TotalResults,
-                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                    Results = result.ToList()
                 };
             }
             return null;
@@ -88,21 +95,31 @@ namespace MovieRS.API.Core.Repositories
             var recommendation = await _tmdb.Client.GetMovieRecommendationsAsync(id, page);
             if (recommendation != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(recommendation.Results.Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(recommendation.Results.Take(take > 0 ? take : recommendation.Results.Count).Select(item => GetMovie(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
                 {
                     Page = recommendation.Page,
                     TotalPages = recommendation.TotalPages,
                     TotalResults = recommendation.TotalResults,
-                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                    Results = result.ToList()
                 };
             }
             return null;
         }
 
-        public Task<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>> GetReview(int id, int page = 1)
+        public async Task<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>> GetReview(int id, int page = 1, int take = 0)
         {
-            return _tmdb.Client.GetMovieReviewsAsync(id, page: page < 1 ? 1 : page);
+            _tmdb.ChangeLanguage("en");
+            TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase> review = await _tmdb.Client.GetMovieReviewsAsync(id, page: page < 1 ? 1 : page);
+            _tmdb.ChangeLanguage("vi");
+            return new SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>
+            {
+                Id = review.Id,
+                Page = review.Page,
+                TotalPages = review.TotalPages,
+                TotalResults = review.TotalResults,
+                Results = review.Results.Take(take > 0 ? take : review.Results.Count).ToList()
+            };
         }
 
         public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetTopRated(int page = 1, int take = 0)
@@ -110,13 +127,13 @@ namespace MovieRS.API.Core.Repositories
             var movie = await _tmdb.Client.GetMovieTopRatedListAsync(page: page < 1 ? 1 : page);
             if (movie != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovie(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
                 {
                     Page = movie.Page,
                     TotalPages = movie.TotalPages,
                     TotalResults = movie.TotalResults,
-                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                    Results = result.ToList()
                 };
             }
             return null;
@@ -127,14 +144,14 @@ namespace MovieRS.API.Core.Repositories
             var movie = await _tmdb.Client.GetMovieUpcomingListAsync(page: page < 1 ? 1 : page);
             if (movie != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovie(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>
                 {
                     Dates = movie.Dates,
                     Page = movie.Page,
                     TotalPages = movie.TotalPages,
                     TotalResults = movie.TotalResults,
-                    Results = (take > 0 ? result.Take(take) : result).ToList()
+                    Results = result.ToList()
                 };
             }
             return null;

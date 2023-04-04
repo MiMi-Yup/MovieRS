@@ -34,7 +34,12 @@ namespace MovieRS.API.Profiles
 
             CreateMap<TMDbLib.Objects.Reviews.AuthorDetails, UserDto>()
                 .ForMember(item => item.Username, options => options.MapFrom(item => item.Username))
-                .ForMember(item => item.Id, options => options.MapFrom(item => 0));
+                .ForMember(item => item.Id, options => options.MapFrom(item => 0))
+                //Chỗ này chưa tìm ra cách
+                .ForMember(item => item.Country, options => options.MapFrom(item => "US"));
+
+            CreateMap<TMDbLib.Objects.Reviews.ReviewBase, ReviewDto>()
+                .ForMember(item => item.Rating, options => options.MapFrom(item => double.Parse(item.AuthorDetails.Rating)));
 
             CreateMap<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>, SeachContainerWithIdDto<ReviewDto>>();
 

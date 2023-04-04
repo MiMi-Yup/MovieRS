@@ -38,9 +38,9 @@ namespace MovieRS.API.Controllers
         [HttpGet]
         [Route("{id}/actors")]
         [Produces(typeof(ApiResponse<CreditsDto>))]
-        public async Task<IActionResult> Actors(int id)
+        public async Task<IActionResult> Actors(int id, [FromQuery] int? take)
         {
-            var movie = await _unitOfWork.Movie.GetActors(_unitOfWork.Person, id);
+            var movie = await _unitOfWork.Movie.GetActors(_unitOfWork.Person, id, take ?? 0);
             return movie == null
                 ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
                 : Ok(new ApiResponse<CreditsDto>(_mapper.Map<CreditsDto>(movie), "OK"));
@@ -49,9 +49,9 @@ namespace MovieRS.API.Controllers
         [HttpGet]
         [Route("{id}/images")]
         [Produces(typeof(ApiResponse<ImageDto>))]
-        public async Task<IActionResult> Images(int id)
+        public async Task<IActionResult> Images(int id, [FromQuery] int? take)
         {
-            var image = await _unitOfWork.Movie.GetImages(id);
+            var image = await _unitOfWork.Movie.GetImages(id, take ?? 0);
             return image == null
                 ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
                 : Ok(new ApiResponse<ImageDto>(_mapper.Map<ImageDto>(image), "OK"));
@@ -71,9 +71,9 @@ namespace MovieRS.API.Controllers
         [HttpGet]
         [Route("{id}/review")]
         [Produces(typeof(ApiResponse<SeachContainerWithIdDto<ReviewDto>>))]
-        public async Task<IActionResult> Review(int id, [FromQuery] int? page)
+        public async Task<IActionResult> Review(int id, [FromQuery] int? page, [FromQuery] int? take)
         {
-            var movie = await _unitOfWork.Movie.GetReview(id, page ?? 1);
+            var movie = await _unitOfWork.Movie.GetReview(id, page ?? 1, take ?? 0);
             return movie == null
                 ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
                 : Ok(new ApiResponse<SeachContainerWithIdDto<ReviewDto>>(_mapper.Map<SeachContainerWithIdDto<ReviewDto>>(movie), "OK"));

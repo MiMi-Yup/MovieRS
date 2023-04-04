@@ -8,5 +8,6 @@ namespace MovieRS.API.Dtos.Movie
         public UserDto? AuthorDetails { get; set; }
         public string? Content { get; set; }
         public string? Id { get; set; }
+        public double Rating { get; set; }
     }
 }

@@ -20,13 +20,13 @@ namespace MovieRS.API.Core.Repositories
             return task;
         }
 
-        public async Task<TMDbLib.Objects.People.MovieCreditsExtension?> GetMovieAct(IMovieRepository repository, int id)
+        public async Task<TMDbLib.Objects.People.MovieCreditsExtension?> GetMovieAct(IMovieRepository repository, int id, int take = 0)
         {
             var movie = await _tmdb.Client.GetPersonMovieCreditsAsync(id);
             return movie != null ? new TMDbLib.Objects.People.MovieCreditsExtension
             {
                 Id = movie.Id,
-                Cast = (await Task.WhenAll(movie.Cast.Select(async item =>
+                Cast = (await Task.WhenAll(movie.Cast.Take(take > 0 ? take : movie.Cast.Count).Select(async item =>
                 {
                     TMDbLib.Objects.People.MovieRoleExtension role = item.Convert();
                     role.Movie = await repository.GetMovie(item.Id);
