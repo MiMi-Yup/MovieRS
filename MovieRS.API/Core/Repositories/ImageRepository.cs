@@ -6,6 +6,7 @@ namespace MovieRS.API.Core.Repositories
     public class ImageRepository : IImageRepository
     {
         private ITMDb _tmdb;
+        private static readonly string[] widthAccept = new[] { "w154", "w300", "w500", "w780", "w1280", "orignal" };
 
         public ImageRepository(ITMDb tmdb)
         {
@@ -13,12 +14,15 @@ namespace MovieRS.API.Core.Repositories
             _tmdb.Client.GetConfigAsync().Wait();
         }
 
-        public async Task<byte[]> GetImage(string path, string size = "original", bool useSsl = true)
+        public async Task<byte[]> GetImage(string path, string size = "w500", bool useSsl = true)
         {
+            if (!widthAccept.Contains(size))
+                new ApiException("Invalid request width", System.Net.HttpStatusCode.BadRequest);
             try
             {
                 byte[] image = await _tmdb.Client.GetImageBytesAsync(size, path, useSsl);
                 return image;
+
             }
             catch (HttpRequestException ex)
             {

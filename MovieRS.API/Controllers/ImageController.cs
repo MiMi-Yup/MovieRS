@@ -22,16 +22,16 @@ namespace MovieRS.API.Controllers
 
         [HttpGet]
         [Route("{path}")]
-        public async Task<IActionResult> Image(string path)
+        public async Task<IActionResult> Image(string path, [FromQuery] string? width)
         {
             try
             {
-                byte[] image = await _unitOfWork.Image.GetImage($"/{path}");
+                byte[] image = await _unitOfWork.Image.GetImage($"/{path}", width ?? "w500");
                 return File(image, "image/jpeg", true);
             }
             catch (ApiException ex)
             {
-                return NotFound(ex);
+                return BadRequest(ex);
             }
         }
     }

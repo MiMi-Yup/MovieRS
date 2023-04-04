@@ -10,6 +10,6 @@
         /// <param name="useSsl"></param>
         /// <returns></returns>
         /// <exception cref="ApiException"></exception>
-        Task<byte[]> GetImage(string path, string size = "original", bool useSsl = true);
+        Task<byte[]> GetImage(string path, string size = "w500", bool useSsl = true);
     }
 }
