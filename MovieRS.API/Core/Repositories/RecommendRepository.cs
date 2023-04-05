@@ -21,7 +21,7 @@ namespace MovieRS.API.Core.Repositories
             _unitOfWork = unitOfWork;
 
             _mlContext = new MLContext();
-            _model = _mlContext.Model.Load(_configuration["Model"], out _modelSchema);
+            _model = _mlContext.Model.Load(new FileInfo(Path.Combine(new DirectoryInfo(Environment.CurrentDirectory).Parent.FullName, _configuration["Model"])).FullName, out _modelSchema);
         }
 
         public Task<IList<Movie>> GetRecommends()

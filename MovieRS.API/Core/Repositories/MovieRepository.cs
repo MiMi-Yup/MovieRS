@@ -1,9 +1,7 @@
 ﻿using AutoMapper;
 using MovieRS.API.Core.Contracts;
+using MovieRS.API.Error;
 using MovieRS.API.Models;
-using System.Linq;
-using TMDbLib.Client;
-using TMDbLib.Objects.General;
 using TMDbLib.Objects.Movies;
 
 namespace MovieRS.API.Core.Repositories
@@ -31,9 +29,61 @@ namespace MovieRS.API.Core.Repositories
             };
         }
 
-        public Task<TMDbLib.Objects.Movies.Movie> GetMovie(int id)
+        public async Task<TMDbLib.Objects.Movies.Movie> GetMovie(int id)
         {
-            return _tmdb.Client.GetMovieAsync(id);
+            try
+            {
+                return await _tmdb.Client.GetMovieAsync(id);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException(ex.Message, System.Net.HttpStatusCode.NotFound);
+            }
+        }
+
+        public async Task<TMDbLib.Objects.General.ResultContainer<TMDbLib.Objects.General.Video>> GetVideos(int id)
+        {
+            try
+            {
+                _tmdb.ChangeLanguage("en");
+                Task<TMDbLib.Objects.General.ResultContainer<TMDbLib.Objects.General.Video>> videoEn = _tmdb.Client.GetMovieVideosAsync(id);
+                _tmdb.ChangeLanguage("vi");
+                Task<TMDbLib.Objects.General.ResultContainer<TMDbLib.Objects.General.Video>> videoVn = _tmdb.Client.GetMovieVideosAsync(id);
+                TMDbLib.Objects.General.ResultContainer<TMDbLib.Objects.General.Video>[] videos = await Task.WhenAll(videoEn, videoVn);
+                List<TMDbLib.Objects.General.Video> filteredVideo = videos
+                    .Select(item => item.Results)
+                    .SelectMany(item => item)
+                    .DistinctBy(item => item.Id)
+                    .Where(item => item.Site == "YouTube" && item.Type == "Trailer")
+                    .ToList();
+                if (!filteredVideo.Any())
+                    filteredVideo.Add(new TMDbLib.Objects.General.Video
+                    {
+                        Iso_639_1 = "en",
+                        Site = "Custom",
+                        Key = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                        Type = "Trailer"
+                    });
+
+                //check ngrok and pass link
+                filteredVideo.Add(new TMDbLib.Objects.General.Video
+                {
+                    Iso_639_1 = "vi",
+                    Site = "Custom",
+                    Type = "Full",
+                    Key = /*"<PASS LINK TO HERE>"*/"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+                });
+
+                return new TMDbLib.Objects.General.ResultContainer<TMDbLib.Objects.General.Video>
+                {
+                    Id = id,
+                    Results = filteredVideo
+                };
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException(ex.Message, System.Net.HttpStatusCode.NotFound);
+            }
         }
 
         public async Task<TMDbLib.Objects.Movies.CreditsExtension?> GetActors(IPersonRepository repository, int id, int take = 0)
@@ -112,7 +162,7 @@ namespace MovieRS.API.Core.Repositories
             _tmdb.ChangeLanguage("en");
             TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase> review = await _tmdb.Client.GetMovieReviewsAsync(id, page: page < 1 ? 1 : page);
             _tmdb.ChangeLanguage("vi");
-            return new SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>
+            return new TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>
             {
                 Id = review.Id,
                 Page = review.Page,

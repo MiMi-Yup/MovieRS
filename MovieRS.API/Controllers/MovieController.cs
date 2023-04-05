@@ -36,6 +36,17 @@ namespace MovieRS.API.Controllers
         }
 
         [HttpGet]
+        [Route("{id}/videos")]
+        [Produces(typeof(ApiResponse<ResultContainerDto<VideoDto>>))]
+        public async Task<IActionResult> Videos(int id)
+        {
+            var video = await _unitOfWork.Movie.GetVideos(id);
+            return video == null
+                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
+                : Ok(new ApiResponse<ResultContainerDto<VideoDto>>(_mapper.Map<ResultContainerDto<VideoDto>>(video), "OK"));
+        }
+
+        [HttpGet]
         [Route("{id}/actors")]
         [Produces(typeof(ApiResponse<CreditsDto>))]
         public async Task<IActionResult> Actors(int id, [FromQuery] int? take)
