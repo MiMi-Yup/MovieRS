@@ -106,5 +106,12 @@ namespace MovieRS.API.Controllers
         {
             return new Random().Next(1000, 9999).ToString("D4");
         }
+
+        [HttpGet]
+        [Route("test")]
+        public IActionResult Test()
+        {
+            return Ok(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory));
+        }
     }
 }

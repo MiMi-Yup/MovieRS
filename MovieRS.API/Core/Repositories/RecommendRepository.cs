@@ -30,7 +30,7 @@ namespace MovieRS.API.Core.Repositories
             _mapper = mapper;
             _movieRepository = movieRepository;
             _mlContext = mlContext;
-            _model = _mlContext.Model.Load(new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _configuration["ModelUMR"])).FullName, out _modelSchema);
+            _model = _mlContext.Model.Load(new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", _configuration["ModelUMR"])).FullName, out _modelSchema);
         }
 
         public async Task<IList<TMDbLib.Objects.Movies.Movie>> GetUserMovieRecommendation(MovieRS.API.Models.User user, int takeMax = 0)
