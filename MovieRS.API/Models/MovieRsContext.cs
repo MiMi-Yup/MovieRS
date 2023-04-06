@@ -6,27 +6,28 @@ namespace MovieRS.API.Models;
 
 public partial class MovieRsContext : DbContext
 {
-    private readonly IConfiguration _configuration;
-    public MovieRsContext(IConfiguration configuration)
+    public MovieRsContext()
     {
-        _configuration = configuration;
     }
 
-    public MovieRsContext(DbContextOptions<MovieRsContext> options, IConfiguration configuration)
+    public MovieRsContext(DbContextOptions<MovieRsContext> options)
         : base(options)
     {
-        _configuration = configuration;
     }
 
     public virtual DbSet<Country> Countries { get; set; }
 
     public virtual DbSet<DetailGenre> DetailGenres { get; set; }
 
+    public virtual DbSet<Favourite> Favourites { get; set; }
+
     public virtual DbSet<Genre> Genres { get; set; }
 
     public virtual DbSet<History> Histories { get; set; }
 
     public virtual DbSet<Movie> Movies { get; set; }
+
+    public virtual DbSet<RawTrainingModel> RawTrainingModels { get; set; }
 
     public virtual DbSet<Review> Reviews { get; set; }
 
@@ -36,10 +37,11 @@ public partial class MovieRsContext : DbContext
     {
         modelBuilder.Entity<Country>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__COUNTRY__3214EC077A9657E6");
+            entity.HasKey(e => e.Id).HasName("PK__COUNTRY__3214EC079E54C256");
 
             entity.ToTable("COUNTRY");
 
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Name).HasMaxLength(50);
         });
 
@@ -50,12 +52,32 @@ public partial class MovieRsContext : DbContext
             entity.ToTable("DETAIL_GENRE");
         });
 
+        modelBuilder.Entity<Favourite>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.MovieId }).HasName("PkFavorite");
+
+            entity.ToTable("FAVOURITE");
+
+            entity.Property(e => e.NotUse).HasColumnName("NOT_USE");
+
+            entity.HasOne(d => d.Movie).WithMany(p => p.Favourites)
+                .HasForeignKey(d => d.MovieId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FkFavoriteMovie");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Favourites)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FkFavoriteUser");
+        });
+
         modelBuilder.Entity<Genre>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__GENRE__3214EC0726441A9B");
+            entity.HasKey(e => e.Id).HasName("PK__GENRE__3214EC078226D474");
 
             entity.ToTable("GENRE");
 
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
@@ -75,18 +97,28 @@ public partial class MovieRsContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.Histories)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FkHistoryUSER");
+                .HasConstraintName("FkHistoryUser");
         });
 
         modelBuilder.Entity<Movie>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__MOVIE__3214EC0737DEC4EC");
+            entity.HasKey(e => e.Id).HasName("PK__MOVIE__3214EC07CC466EE7");
 
             entity.ToTable("MOVIE");
+        });
 
-            entity.Property(e => e.YearRelease)
-                .HasColumnType("date")
-                .HasColumnName("YEAR_RELEASE");
+        modelBuilder.Entity<RawTrainingModel>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.MovieId }).HasName("PkRawTrainingModel");
+
+            entity.ToTable("RAW_TRAINING_MODEL");
+
+            entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
+
+            entity.HasOne(d => d.Movie).WithMany(p => p.RawTrainingModels)
+                .HasForeignKey(d => d.MovieId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FkRawTrainingModelMovie");
         });
 
         modelBuilder.Entity<Review>(entity =>
@@ -95,7 +127,7 @@ public partial class MovieRsContext : DbContext
 
             entity.ToTable("REVIEW");
 
-            entity.Property(e => e.Rating).HasColumnType("decimal(1, 0)");
+            entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
             entity.Property(e => e.TimeStamp).HasColumnType("datetime");
 
             entity.HasOne(d => d.Movie).WithMany(p => p.Reviews)
@@ -106,16 +138,16 @@ public partial class MovieRsContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FkReviewUSER");
+                .HasConstraintName("FkReviewUser");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__USER___3214EC07217EB26D");
+            entity.HasKey(e => e.Id).HasName("PK__USER___3214EC07EA9A7E47");
 
             entity.ToTable("USER_");
 
-            entity.HasIndex(e => e.Email, "UQ__USER___A9D105347EF16793").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__USER___A9D105342DB23183").IsUnique();
 
             entity.Property(e => e.Email)
                 .HasMaxLength(255)
@@ -128,23 +160,6 @@ public partial class MovieRsContext : DbContext
             entity.HasOne(d => d.Country).WithMany(p => p.Users)
                 .HasForeignKey(d => d.CountryId)
                 .HasConstraintName("FkUSERCountry");
-
-            entity.HasMany(d => d.Movies).WithMany(p => p.Users)
-                .UsingEntity<Dictionary<string, object>>(
-                    "Favorite",
-                    r => r.HasOne<Movie>().WithMany()
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FkFavoriteMovie"),
-                    l => l.HasOne<User>().WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FkFavoriteUSER"),
-                    j =>
-                    {
-                        j.HasKey("UserId", "MovieId").HasName("PkFavorite");
-                        j.ToTable("FAVORITE");
-                    });
         });
 
         OnModelCreatingPartial(modelBuilder);

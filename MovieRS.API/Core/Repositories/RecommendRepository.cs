@@ -1,42 +1,61 @@
 ﻿using AutoMapper;
-using Microsoft.Extensions.Configuration;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using MovieRS.API.Core.Contracts;
-using MovieRS.API.Dtos.User;
 using MovieRS.API.Models;
 
 namespace MovieRS.API.Core.Repositories
 {
-    public class RecommendRepository : GenericRepository<Movie>, IRecommendRepository
+    public class RecommendRepository : IRecommendRepository
     {
         private readonly IConfiguration _configuration;
         private readonly MLContext _mlContext;
         private readonly DataViewSchema _modelSchema;
         private readonly ITransformer _model;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger _logger;
+        private readonly IMapper _mapper;
+        private readonly IMovieRepository _movieRepository;
 
-        public RecommendRepository(MovieRsContext context, ILogger logger, IMapper mapper, IUnitOfWork unitOfWork, IConfiguration configuration) : base(context, logger, mapper)
+        public RecommendRepository(
+            MovieRsContext context,
+            ILogger logger,
+            IMapper mapper,
+            IConfiguration configuration,
+            IMovieRepository movieRepository,
+            MLContext mlContext
+            )
         {
             _configuration = configuration;
-            _unitOfWork = unitOfWork;
-
-            _mlContext = new MLContext();
-            _model = _mlContext.Model.Load(new FileInfo(Path.Combine(new DirectoryInfo(Environment.CurrentDirectory).Parent.FullName, _configuration["Model"])).FullName, out _modelSchema);
+            _logger = logger;
+            _mapper = mapper;
+            _movieRepository = movieRepository;
+            _mlContext = mlContext;
+            _model = _mlContext.Model.Load(new FileInfo(Path.Combine(Environment.CurrentDirectory, _configuration["ModelUMR"])).FullName, out _modelSchema);
         }
 
-        public Task<IList<Movie>> GetRecommends()
+        public async Task<IList<TMDbLib.Objects.Movies.Movie>> GetUserMovieRecommendation(MovieRS.API.Models.User user, int takeMax = 0)
         {
-            return Task.Factory.StartNew<IList<Movie>>(() =>
-            {
-                //get list movie in model (IdTmdb in database)
-                IList<Movie> result = null;
-                IEnumerable<OutputPredictModel> top5Predicts = result
-                    .Select(item => new InputPredictModel { userId = 1, movieId = item.IdTmdb.Value })
-                    .Select(item => _mlContext.Model.CreatePredictionEngine<InputPredictModel, OutputPredictModel>(_model).Predict(item))
-                    .OrderByDescending(item => item.score)
-                    .Take(5);
-                return top5Predicts.Select(item => new Movie { Id = 1, IdTmdb = item.movieId }).ToList();
-            });
+            List<Movie> movie = (await _movieRepository.GetLocalVideos()).Where(item => item.IdTmdb != null).ToList();
+            IDataView predictPool = _model.Transform(_mlContext.Data.LoadFromEnumerable<InputPredictModel>(movie.Select(item => new InputPredictModel { userId = user.Id, movieId = item.Id })));
+            IEnumerable<int> movieIds = predictPool.GetColumn<int>("movieId");
+            IEnumerable<int?> top10MovieIds = predictPool.GetColumn<float>("Score")
+                .Select((item, index) => new { index = index, Score = item })
+                .OrderByDescending(item => item.Score)
+                .Take(takeMax > 0 ? takeMax + 10 : 10)
+                .Select(item => movieIds.ElementAtOrDefault(item.index))
+                .Select(item => movie.Find(_item => _item.Id == item))
+                .Select(item => item?.IdTmdb)
+                .Where(item => item != null);
+            TMDbLib.Objects.Movies.Movie[] movies = await Task.WhenAll(top10MovieIds.Select(item => _movieRepository.GetMovie(item.Value)));
+            IEnumerable<TMDbLib.Objects.Movies.Movie> filter = movies.Where(item => item != null);
+            if (takeMax > 0)
+                filter = filter.Take(takeMax);
+            return filter.ToList();
+        }
+
+        public async Task<TMDbLib.Objects.Movies.Movie[]> GetMovieGenreRecommendation()
+        {
+            return null;
         }
 
         private class InputPredictModel
@@ -47,8 +66,8 @@ namespace MovieRS.API.Core.Repositories
 
         private class OutputPredictModel
         {
-            public int movieId;
-            public float score;
+            public float Label;
+            public float Score;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MovieRS.API.Core.Contracts;
+using MovieRS.API.Dtos.Movie;
 using MovieRS.API.Error;
 using MovieRS.API.Models;
 using TMDbLib.Objects.Movies;
@@ -9,10 +11,12 @@ namespace MovieRS.API.Core.Repositories
     public class MovieRepository : GenericRepository<MovieRS.API.Models.Movie>, IMovieRepository
     {
         private readonly ITMDb _tmdb;
+        private readonly IReviewRepository _reviewRepository;
 
-        public MovieRepository(MovieRsContext context, ILogger logger, IMapper mapper, ITMDb tmdb) : base(context, logger, mapper)
+        public MovieRepository(MovieRsContext context, ILogger logger, IMapper mapper, ITMDb tmdb, IReviewRepository reviewRepository) : base(context, logger, mapper)
         {
             _tmdb = tmdb;
+            _reviewRepository = reviewRepository;
         }
 
         public async Task<TMDbLib.Objects.General.ImagesWithId> GetImages(int id, int take = 0)
@@ -123,6 +127,15 @@ namespace MovieRS.API.Core.Repositories
             return null;
         }
 
+        public async Task<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>> NewReview(NewReviewDto newReview)
+        {
+            if (!this.Find(item => item.Id == newReview.Id).Any() && await this.Add(new Models.Movie { Id = newReview.Id }))
+            {
+                await _reviewRepository.NewReviews(newReview);
+            }
+            return null;
+        }
+
         public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetPopular(int page = 1, int take = 0)
         {
             var movie = await _tmdb.Client.GetMoviePopularListAsync(page: page < 1 ? 1 : page);
@@ -217,6 +230,11 @@ namespace MovieRS.API.Core.Repositories
                 TotalResults = movie.TotalResults,
                 Results = (await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)))).ToList()
             } : null;
+        }
+
+        public Task<IEnumerable<Models.Movie>> GetLocalVideos()
+        {
+            return Task.FromResult<IEnumerable<Models.Movie>>(dbSet.AsNoTracking());
         }
     }
 }

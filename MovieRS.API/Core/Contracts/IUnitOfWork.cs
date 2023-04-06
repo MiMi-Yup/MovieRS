@@ -8,5 +8,6 @@
         ICollectionRepository CollectionMovie { get; }
         IPersonRepository Person { get; }
         IImageRepository Image { get; }
+        IRecommendRepository Recommend { get; }
     }
 }

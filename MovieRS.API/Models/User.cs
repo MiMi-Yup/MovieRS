@@ -13,13 +13,13 @@ public partial class User
 
     public byte[]? Password { get; set; }
 
-    public int? CountryId { get; set; }
+    public byte? CountryId { get; set; }
 
     public virtual Country? Country { get; set; }
+
+    public virtual ICollection<Favourite> Favourites { get; } = new List<Favourite>();
 
     public virtual ICollection<History> Histories { get; } = new List<History>();
 
     public virtual ICollection<Review> Reviews { get; } = new List<Review>();
-
-    public virtual ICollection<Movie> Movies { get; } = new List<Movie>();
 }

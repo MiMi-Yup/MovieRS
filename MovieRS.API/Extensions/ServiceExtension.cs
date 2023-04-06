@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using MovieRS.API.Models;
+using Microsoft.ML;
 
 namespace MovieRS.API.Extensions
 {
@@ -20,8 +21,9 @@ namespace MovieRS.API.Extensions
             .AllowAnyHeader().AllowCredentials());
         });
 
-        public static void ConfigureRepositorysitory(this IServiceCollection services) =>
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+        public static void ConfigureRepositorysitory(this IServiceCollection services) => services
+            .AddScoped<IUnitOfWork, UnitOfWork>()
+            .AddSingleton<MLContext, MLContext>();
 
         public static void ConfigureExternalAPI(this IServiceCollection services) =>
             services.AddScoped<ITMDb, TMDbAPI>();

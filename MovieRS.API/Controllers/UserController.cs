@@ -35,5 +35,16 @@ namespace MovieRS.API.Controllers
                 ? BadRequest(new ApiException("Something wrong", System.Net.HttpStatusCode.BadRequest))
                 : Ok(new ApiResponse<UserDto>(_mapper.Map<UserDto>(user), "OK"));
         }
+
+        [HttpGet]
+        [Route("favourite")]
+        public IActionResult GetFavourites()
+        {
+            User? user = HttpContext.Items["User"] as User;
+
+            return user == null
+                ? BadRequest(new ApiException("Something wrong", System.Net.HttpStatusCode.BadRequest))
+                : Ok(new ApiResponse<UserDto>(_mapper.Map<UserDto>(user), "OK"));
+        }
     }
 }

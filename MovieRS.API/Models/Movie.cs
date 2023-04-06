@@ -11,11 +11,13 @@ public partial class Movie
 
     public int? IdImdb { get; set; }
 
-    public DateTime? YearRelease { get; set; }
+    public short? YearRelease { get; set; }
+
+    public virtual ICollection<Favourite> Favourites { get; } = new List<Favourite>();
 
     public virtual ICollection<History> Histories { get; } = new List<History>();
 
-    public virtual ICollection<Review> Reviews { get; } = new List<Review>();
+    public virtual ICollection<RawTrainingModel> RawTrainingModels { get; } = new List<RawTrainingModel>();
 
-    public virtual ICollection<User> Users { get; } = new List<User>();
+    public virtual ICollection<Review> Reviews { get; } = new List<Review>();
 }

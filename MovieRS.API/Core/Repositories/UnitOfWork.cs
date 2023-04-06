@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.ML;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Core.Repositories;
 using MovieRS.API.Models;
@@ -20,8 +21,9 @@ namespace MovieRS.API.Core.Repositories
         public ICollectionRepository CollectionMovie { get; private set; }
         public IPersonRepository Person { get; private set; }
         public IImageRepository Image { get; private set; }
+        public IReviewRepository Review { get; private set; }
 
-        public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration, ITMDb tmdb)
+        public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration, ITMDb tmdb, MLContext mlContext)
         {
             _context = context;
             _mapper = mapper;
@@ -31,12 +33,13 @@ namespace MovieRS.API.Core.Repositories
 
             Country = new CountryRepository(_context, _logger, _mapper, _configuration);
             User = new UserRepository(_context, _configuration, Country, _logger, _mapper);
-            Movie = new MovieRepository(_context, _logger, _mapper, _tmdb);
+            Review = new ReviewRepository(_context, _logger, _mapper, User);
+            Movie = new MovieRepository(_context, _logger, _mapper, _tmdb, Review);
             Person = new PersonRepository(_tmdb);
             CollectionMovie = new CollectionRepository(_context, _logger, _mapper, _tmdb, Movie);
             Image = new ImageRepository(_tmdb);
 
-            /*Recommend = new RecommendRepository(context, _logger, _mapper, this, _configuration);*/
+            Recommend = new RecommendRepository(context, _logger, _mapper, _configuration, Movie, mlContext);
         }
 
 
