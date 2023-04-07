@@ -20,4 +20,6 @@ public partial class Movie
     public virtual ICollection<RawTrainingModel> RawTrainingModels { get; } = new List<RawTrainingModel>();
 
     public virtual ICollection<Review> Reviews { get; } = new List<Review>();
+
+    public virtual ICollection<Genre> Genres { get; } = new List<Genre>();
 }

@@ -17,6 +17,8 @@ namespace MovieRS.API.Core.Contracts
         Task<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>> NewReview(NewReviewDto newReview);
         Task<IEnumerable<MovieRS.API.Models.Movie>> GetLocalVideos();
 
+        Task<bool> NewVideo(TMDbLib.Objects.Movies.Movie newMovie);
+
         Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> SearchMovie(string query, int year = 0, string? region = null, int primaryReleaseYear = 0, int page = 1);
     }
 }

@@ -1,9 +1,11 @@
-﻿namespace MovieRS.API.Core.Contracts
+﻿using MovieRS.API.Dtos.Favourite;
+
+namespace MovieRS.API.Core.Contracts
 {
     public interface IFavouriteRepository
     {
-        Task<bool> GetFavourites(string idUser);
-        Task<bool> NewFavourites(string idUser);
-        Task<bool> DeleteFavourites(string idUser);
+        Task<IList<Models.Favourite>> GetFavourites(Models.User user);
+        Task<Models.Favourite> NewFavourites(NewFavouriteDto newFavourite);
+        Task<bool> DeleteFavourites(FavouriteDto deleteFavourite);
     }
 }

@@ -92,6 +92,15 @@ namespace MovieRS.API.Core.Repositories
             dbSet.Remove(entityToDelete);
         }
 
+        public virtual void Delete(params TEntity[] entityToDelete)
+        {
+            if (_context.Entry(entityToDelete).State == EntityState.Detached)
+            {
+                dbSet.AttachRange(entityToDelete);
+            }
+            dbSet.RemoveRange(entityToDelete);
+        }
+
         public async virtual Task<IEnumerable<TEntity>> All()
         {
             return await dbSet.ToListAsync();

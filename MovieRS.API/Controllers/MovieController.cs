@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;
+using MovieRS.API.Dtos.Favourite;
 using MovieRS.API.Dtos.Movie;
 using MovieRS.API.Error;
-using MovieRS.API.Models;
 
 namespace MovieRS.API.Controllers
 {
@@ -70,17 +70,6 @@ namespace MovieRS.API.Controllers
         }
 
         [HttpGet]
-        [Route("person-recommendation")]
-        public async Task<IActionResult> Recommendation([FromQuery] int? takeMax)
-        {
-            User? user = HttpContext.Items["User"] as User;
-            if (user == null)
-                return NotFound(new ApiException("User not supported this feature", System.Net.HttpStatusCode.NotFound));
-            var movie = await _unitOfWork.Recommend.GetUserMovieRecommendation(user!, takeMax ?? 0);
-            return Ok(new ApiResponse<dynamic>(new { Id = user.Id, Movies = _mapper.Map<IList<MovieDto>>(movie) }, "OK"));
-        }
-
-        [HttpGet]
         [Route("{id}/recommendation")]
         [Produces(typeof(ApiResponse<SearchContainerDto<MovieDto>>))]
         public async Task<IActionResult> Recommendation(int id, [FromQuery] int? page, [FromQuery] int? take)
@@ -111,6 +100,16 @@ namespace MovieRS.API.Controllers
             return movie == null
                 ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
                 : Ok(new ApiResponse<SeachContainerWithIdDto<ReviewDto>>(_mapper.Map<SeachContainerWithIdDto<ReviewDto>>(movie), "OK"));
+        }
+
+        [HttpPost]
+        [Route("{id}/favourite")]
+        public async Task<IActionResult> AddFavourite(NewFavouriteDto newFavourite)
+        {
+            var favourtite = await _unitOfWork.Favorite.NewFavourites(newFavourite);
+            return favourtite == null
+                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
+                : Ok(new ApiResponse<bool>(true, "OK"));
         }
 
         [HttpGet]

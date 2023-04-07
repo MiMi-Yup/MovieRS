@@ -17,8 +17,6 @@ public partial class MovieRsContext : DbContext
 
     public virtual DbSet<Country> Countries { get; set; }
 
-    public virtual DbSet<DetailGenre> DetailGenres { get; set; }
-
     public virtual DbSet<Favourite> Favourites { get; set; }
 
     public virtual DbSet<Genre> Genres { get; set; }
@@ -43,13 +41,6 @@ public partial class MovieRsContext : DbContext
 
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Name).HasMaxLength(50);
-        });
-
-        modelBuilder.Entity<DetailGenre>(entity =>
-        {
-            entity.HasKey(e => new { e.IdMovie, e.IdGenre }).HasName("PkDetailGenre");
-
-            entity.ToTable("DETAIL_GENRE");
         });
 
         modelBuilder.Entity<Favourite>(entity =>
@@ -105,6 +96,23 @@ public partial class MovieRsContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__MOVIE__3214EC07CC466EE7");
 
             entity.ToTable("MOVIE");
+
+            entity.HasMany(d => d.Genres).WithMany(p => p.Movies)
+                .UsingEntity<Dictionary<string, object>>(
+                    "DetailGenre",
+                    r => r.HasOne<Genre>().WithMany()
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FKDetailGenreGenre"),
+                    l => l.HasOne<Movie>().WithMany()
+                        .HasForeignKey("MovieId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FKDetailGenreMovie"),
+                    j =>
+                    {
+                        j.HasKey("MovieId", "GenreId").HasName("PkDetailGenre");
+                        j.ToTable("DETAIL_GENRE");
+                    });
         });
 
         modelBuilder.Entity<RawTrainingModel>(entity =>

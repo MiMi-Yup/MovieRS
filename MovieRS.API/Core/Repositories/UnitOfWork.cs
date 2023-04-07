@@ -23,6 +23,10 @@ namespace MovieRS.API.Core.Repositories
         public IImageRepository Image { get; private set; }
         public IReviewRepository Review { get; private set; }
 
+        public IHistoryMovieRepository HistoryMovie { get; private set; }
+
+        public IFavouriteRepository Favorite { get; private set; }
+
         public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration, ITMDb tmdb, MLContext mlContext)
         {
             _context = context;
@@ -38,8 +42,9 @@ namespace MovieRS.API.Core.Repositories
             Person = new PersonRepository(_tmdb);
             CollectionMovie = new CollectionRepository(_context, _logger, _mapper, _tmdb, Movie);
             Image = new ImageRepository(_tmdb);
-
-            Recommend = new RecommendRepository(context, _logger, _mapper, _configuration, Movie, mlContext);
+            HistoryMovie = new HistoryMovieRepository(_context, _logger, _mapper, Movie);
+            Favorite = new FavouriteRepository(_context, _logger, _mapper);
+            Recommend = new RecommendRepository(_logger, _mapper, _configuration, Movie, HistoryMovie, Favorite, mlContext);
         }
 
 

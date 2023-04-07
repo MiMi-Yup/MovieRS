@@ -236,5 +236,26 @@ namespace MovieRS.API.Core.Repositories
         {
             return Task.FromResult<IEnumerable<Models.Movie>>(dbSet.AsNoTracking());
         }
+
+        public async Task<bool> NewVideo(TMDbLib.Objects.Movies.Movie newMovie)
+        {
+            if (dbSet.FirstOrDefault(item => item.IdTmdb == newMovie.Id) == null)
+            {
+                Models.Movie movie = new Models.Movie { IdTmdb = newMovie.Id, IdImdb = int.Parse(newMovie.ImdbId.Substring(2)), YearRelease = (short?)(newMovie.ReleaseDate.HasValue ? newMovie.ReleaseDate.Value.Year : DateTime.Now.Year) };
+                try
+                {
+                    if (await this.Add(movie))
+                    {
+                        await _context.SaveChangesAsync();
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new ApiException(ex.Message, System.Net.HttpStatusCode.Conflict);
+                }
+            }
+            return true;
+        }
     }
 }

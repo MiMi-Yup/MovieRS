@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos.Movie;
+using MovieRS.API.Dtos.Recommendation;
 using MovieRS.API.Dtos.User;
 using MovieRS.API.Models;
 
@@ -67,6 +69,10 @@ namespace MovieRS.API.Profiles
             CreateMap<TMDbLib.Objects.General.Video, VideoDto>();
 
             CreateMap<TMDbLib.Objects.General.ResultContainer<TMDbLib.Objects.General.Video>, ResultContainerDto<VideoDto>>();
+
+            CreateMap<Recommendation, RecommendationDto>();
+
+            CreateMap<ResultRecommendation, ResultRecommendationDto>();
         }
     }
 }
