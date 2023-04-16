@@ -1,19 +1,17 @@
 ﻿using MovieRS.API.Dtos.History;
-using MovieRS.API.Models;
 
 namespace MovieRS.API.Core.Contracts
 {
     public interface IHistoryMovieRepository
     {
-        Task<TMDbLib.Objects.General.SearchContainer<HistoryMovie>> GetHistories(Models.User user, int take = 0, int page = 1);
+        Task<TMDbLib.Objects.General.SearchContainerWithId<HistoryMovie>> GetHistories(Models.User user, int page = 1, int take = 0);
         Task<bool> ClearHistory(Models.User user);
-        Task<bool> AddHistory(User user, NewHistoryDto newHistory);
+        Task<bool> AddHistory(Models.User user, int idTmdb);
     }
 
     public class HistoryMovie
     {
-        public int UserId { get; set; }
         public DateTime? TimeStamp { get; set; }
-        public TMDbLib.Objects.Movies.Movie Movie { get; set; } = null!;
+        public TMDbLib.Objects.Movies.Movie? Movie { get; set; }
     }
 }

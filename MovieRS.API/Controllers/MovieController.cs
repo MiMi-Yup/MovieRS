@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;
-using MovieRS.API.Dtos.Favourite;
 using MovieRS.API.Dtos.Movie;
+using MovieRS.API.Dtos.Review;
+using MovieRS.API.Dtos.Search;
 using MovieRS.API.Error;
+using MovieRS.API.Models;
 
 namespace MovieRS.API.Controllers
 {
@@ -30,9 +32,9 @@ namespace MovieRS.API.Controllers
         [Produces(typeof(ApiResponse<MovieDto>))]
         public async Task<IActionResult> Movie(int id)
         {
-            var movie = await _unitOfWork.Movie.GetMovie(id);
-            return movie == null 
-                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound)) 
+            var movie = await _unitOfWork.Movie.GetMovieBy3rd(id);
+            return movie == null
+                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
                 : Ok(new ApiResponse<MovieDto>(_mapper.Map<MovieDto>(movie), "OK"));
         }
 
@@ -82,34 +84,35 @@ namespace MovieRS.API.Controllers
 
         [HttpGet]
         [Route("{id}/review")]
-        [Produces(typeof(ApiResponse<SeachContainerWithIdDto<ReviewDto>>))]
+        [Produces(typeof(ApiResponse<SearchContainerWithIdDto<ReviewDto>>))]
         public async Task<IActionResult> Review(int id, [FromQuery] int? page, [FromQuery] int? take)
         {
             var movie = await _unitOfWork.Movie.GetReview(id, page ?? 1, take ?? 0);
             return movie == null
                 ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
-                : Ok(new ApiResponse<SeachContainerWithIdDto<ReviewDto>>(_mapper.Map<SeachContainerWithIdDto<ReviewDto>>(movie), "OK"));
+                : Ok(new ApiResponse<SearchContainerWithIdDto<ReviewDto>>(_mapper.Map<SearchContainerWithIdDto<ReviewDto>>(movie), "OK"));
         }
 
         [HttpPost]
         [Route("{id}/review")]
-        [Produces(typeof(ApiResponse<SeachContainerWithIdDto<ReviewDto>>))]
-        public async Task<IActionResult> NewReview(NewReviewDto newReview)
+        public async Task<IActionResult> NewReview(int id, NewReviewDto newReview)
         {
-            var movie = await _unitOfWork.Movie.NewReview(newReview);
-            return movie == null
-                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
-                : Ok(new ApiResponse<SeachContainerWithIdDto<ReviewDto>>(_mapper.Map<SeachContainerWithIdDto<ReviewDto>>(movie), "OK"));
-        }
+            try
+            {
+                User? user = HttpContext.Items["User"] as User;
+                if (user != null)
+                {
+                    await _unitOfWork.Movie.NewReview(user, id, newReview);
+                    return Ok(new ApiResponse<bool>(true, "OK"));
+                }
+                else
+                    return Unauthorized(new ApiException("User not exists", System.Net.HttpStatusCode.Unauthorized));
 
-        [HttpPost]
-        [Route("{id}/favourite")]
-        public async Task<IActionResult> AddFavourite(NewFavouriteDto newFavourite)
-        {
-            var favourtite = await _unitOfWork.Favorite.NewFavourites(newFavourite);
-            return favourtite == null
-                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
-                : Ok(new ApiResponse<bool>(true, "OK"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiException("Error new review", System.Net.HttpStatusCode.InternalServerError));
+            }
         }
 
         [HttpGet]
@@ -129,8 +132,8 @@ namespace MovieRS.API.Controllers
         public async Task<IActionResult> NowPlaying([FromQuery] int? page, [FromQuery] int? take)
         {
             var movie = await _unitOfWork.Movie.GetNowPlaying(page ?? 1, take ?? 0);
-            return movie == null 
-                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound)) 
+            return movie == null
+                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
                 : Ok(new ApiResponse<SearchContainerWithDataRangeDto<MovieDto>>(_mapper.Map<SearchContainerWithDataRangeDto<MovieDto>>(movie), "OK"));
         }
 
@@ -151,8 +154,8 @@ namespace MovieRS.API.Controllers
         public async Task<IActionResult> TopRated([FromQuery] int? page, [FromQuery] int? take)
         {
             var movie = await _unitOfWork.Movie.GetTopRated(page ?? 1, take ?? 0);
-            return movie == null 
-                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound)) 
+            return movie == null
+                ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
                 : Ok(new ApiResponse<SearchContainerDto<MovieDto>>(_mapper.Map<SearchContainerDto<MovieDto>>(movie), "OK"));
         }
     }

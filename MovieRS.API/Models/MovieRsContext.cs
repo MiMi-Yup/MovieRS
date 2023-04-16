@@ -35,11 +35,13 @@ public partial class MovieRsContext : DbContext
     {
         modelBuilder.Entity<Country>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__COUNTRY__3214EC079E54C256");
+            entity.HasKey(e => e.Id).HasName("PK__COUNTRY__3214EC07DB3E63CF");
 
             entity.ToTable("COUNTRY");
 
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Code)
+                .HasMaxLength(10)
+                .IsUnicode(false);
             entity.Property(e => e.Name).HasMaxLength(50);
         });
 
@@ -131,11 +133,11 @@ public partial class MovieRsContext : DbContext
 
         modelBuilder.Entity<Review>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.MovieId }).HasName("PkReview");
+            entity.HasKey(e => e.Id).HasName("PK__REVIEW__3214EC078461CE60");
 
             entity.ToTable("REVIEW");
 
-            entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
+            entity.Property(e => e.Rating).HasColumnType("decimal(3, 1)");
             entity.Property(e => e.TimeStamp).HasColumnType("datetime");
 
             entity.HasOne(d => d.Movie).WithMany(p => p.Reviews)

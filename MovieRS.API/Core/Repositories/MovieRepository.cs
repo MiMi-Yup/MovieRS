@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MovieRS.API.Core.Contracts;
-using MovieRS.API.Dtos.Movie;
+using MovieRS.API.Dtos.Review;
 using MovieRS.API.Error;
 using MovieRS.API.Models;
 using TMDbLib.Objects.Movies;
+using TMDbLib.Objects.Reviews;
 
 namespace MovieRS.API.Core.Repositories
 {
-    public class MovieRepository : GenericRepository<MovieRS.API.Models.Movie>, IMovieRepository
+    public class MovieRepository : GenericRepository<Models.Movie>, IMovieRepository
     {
         private readonly ITMDb _tmdb;
         private readonly IReviewRepository _reviewRepository;
@@ -33,7 +34,7 @@ namespace MovieRS.API.Core.Repositories
             };
         }
 
-        public async Task<TMDbLib.Objects.Movies.Movie> GetMovie(int id)
+        public async Task<TMDbLib.Objects.Movies.Movie> GetMovieBy3rd(int id)
         {
             try
             {
@@ -114,7 +115,7 @@ namespace MovieRS.API.Core.Repositories
             var movie = await _tmdb.Client.GetMovieNowPlayingListAsync(page: page < 1 ? 1 : page);
             if (movie != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovieBy3rd(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>
                 {
                     Dates = movie.Dates,
@@ -127,13 +128,16 @@ namespace MovieRS.API.Core.Repositories
             return null;
         }
 
-        public async Task<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>> NewReview(NewReviewDto newReview)
+        public async Task<bool> NewReview(User user, int idTmdb, NewReviewDto newReview)
         {
-            if (!this.Find(item => item.Id == newReview.Id).Any() && await this.Add(new Models.Movie { Id = newReview.Id }))
+            if (!this.Find(item => item.IdTmdb == idTmdb).Any())
             {
-                await _reviewRepository.NewReviews(newReview);
+                await NewVideo(idTmdb);
             }
-            return null;
+            Models.Movie? movie = await this.Find(item => item.IdTmdb == idTmdb).FirstOrDefaultAsync();
+            if (movie != null)
+                return await _reviewRepository.NewReviews(user, movie, newReview);
+            return false;
         }
 
         public async Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetPopular(int page = 1, int take = 0)
@@ -141,7 +145,7 @@ namespace MovieRS.API.Core.Repositories
             var movie = await _tmdb.Client.GetMoviePopularListAsync(page: page < 1 ? 1 : page);
             if (movie != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovieBy3rd(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
                 {
                     Page = movie.Page,
@@ -158,7 +162,7 @@ namespace MovieRS.API.Core.Repositories
             var recommendation = await _tmdb.Client.GetMovieRecommendationsAsync(id, page);
             if (recommendation != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(recommendation.Results.Take(take > 0 ? take : recommendation.Results.Count).Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(recommendation.Results.Take(take > 0 ? take : recommendation.Results.Count).Select(item => GetMovieBy3rd(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
                 {
                     Page = recommendation.Page,
@@ -170,18 +174,41 @@ namespace MovieRS.API.Core.Repositories
             return null;
         }
 
-        public async Task<TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>> GetReview(int id, int page = 1, int take = 0)
+        public async Task<TMDbLib.Objects.General.SearchContainerWithId<ReviewBaseExtension>> GetReview(int id, int page = 1, int take = 0)
         {
             _tmdb.ChangeLanguage("en");
-            TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase> review = await _tmdb.Client.GetMovieReviewsAsync(id, page: page < 1 ? 1 : page);
+            TMDbLib.Objects.General.SearchContainerWithId<ReviewBase> review = await _tmdb.Client.GetMovieReviewsAsync(id, page: page < 1 ? 1 : page);
             _tmdb.ChangeLanguage("vi");
-            return new TMDbLib.Objects.General.SearchContainerWithId<TMDbLib.Objects.Reviews.ReviewBase>
+            List<ReviewBaseExtension> totalReview = new List<ReviewBaseExtension>();
+            IList<ReviewBaseExtension> _review = review.Results.Select(item => item.Convert()).ToList();
+            IList<Models.Review> ownReviews = await _reviewRepository.GetReviewsByIdMovie(id);
+            if (page == 1)
+            {
+                totalReview.AddRange(ownReviews.Select(item => new ReviewBaseExtension
+                {
+                    Author = item.User.Username,
+                    Content = item.Content,
+                    Id = item.Id.ToString(),
+                    Rating = System.Convert.ToDouble(item.Rating),
+                    CreatedAt = item.TimeStamp,
+                    AuthorDetails = new AuthorDetailsExtension
+                    {
+                        Id = item.User.Id,
+                        Username = item.User.Username,
+                        Email = item.User.Email,
+                        Country = item.User.Country,
+                        AvatarPath = null,
+                    }
+                }));
+            }
+            totalReview.AddRange(_review);
+            return new TMDbLib.Objects.General.SearchContainerWithId<ReviewBaseExtension>
             {
                 Id = review.Id,
                 Page = review.Page,
                 TotalPages = review.TotalPages,
-                TotalResults = review.TotalResults,
-                Results = review.Results.Take(take > 0 ? take : review.Results.Count).ToList()
+                TotalResults = review.TotalResults + ownReviews.Count,
+                Results = totalReview.Take(take > 0 ? take : totalReview.Count).ToList()
             };
         }
 
@@ -190,7 +217,7 @@ namespace MovieRS.API.Core.Repositories
             var movie = await _tmdb.Client.GetMovieTopRatedListAsync(page: page < 1 ? 1 : page);
             if (movie != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovieBy3rd(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>
                 {
                     Page = movie.Page,
@@ -207,7 +234,7 @@ namespace MovieRS.API.Core.Repositories
             var movie = await _tmdb.Client.GetMovieUpcomingListAsync(page: page < 1 ? 1 : page);
             if (movie != null)
             {
-                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovie(item.Id)));
+                TMDbLib.Objects.Movies.Movie[] result = await Task.WhenAll(movie.Results.Take(take > 0 ? take : movie.Results.Count).Select(item => GetMovieBy3rd(item.Id)));
                 return new TMDbLib.Objects.General.SearchContainerWithDates<TMDbLib.Objects.Movies.Movie>
                 {
                     Dates = movie.Dates,
@@ -228,7 +255,7 @@ namespace MovieRS.API.Core.Repositories
                 Page = movie.Page,
                 TotalPages = movie.TotalPages,
                 TotalResults = movie.TotalResults,
-                Results = (await Task.WhenAll(movie.Results.Select(item => GetMovie(item.Id)))).ToList()
+                Results = (await Task.WhenAll(movie.Results.Select(item => GetMovieBy3rd(item.Id)))).ToList()
             } : null;
         }
 
@@ -237,10 +264,11 @@ namespace MovieRS.API.Core.Repositories
             return Task.FromResult<IEnumerable<Models.Movie>>(dbSet.AsNoTracking());
         }
 
-        public async Task<bool> NewVideo(TMDbLib.Objects.Movies.Movie newMovie)
+        public async Task<bool> NewVideo(int idTmdb)
         {
-            if (dbSet.FirstOrDefault(item => item.IdTmdb == newMovie.Id) == null)
+            if (dbSet.FirstOrDefault(item => item.IdTmdb == idTmdb) == null)
             {
+                TMDbLib.Objects.Movies.Movie newMovie = await GetMovieBy3rd(idTmdb);
                 Models.Movie movie = new Models.Movie { IdTmdb = newMovie.Id, IdImdb = int.Parse(newMovie.ImdbId.Substring(2)), YearRelease = (short?)(newMovie.ReleaseDate.HasValue ? newMovie.ReleaseDate.Value.Year : DateTime.Now.Year) };
                 try
                 {
@@ -252,10 +280,20 @@ namespace MovieRS.API.Core.Repositories
                 }
                 catch (Exception ex)
                 {
-                    throw new ApiException(ex.Message, System.Net.HttpStatusCode.Conflict);
+                    throw new ApiException(ex.Message, System.Net.HttpStatusCode.InternalServerError);
                 }
             }
             return true;
+        }
+
+        public Task<Models.Movie> GetMovieById(int id)
+        {
+            return this.FindById(id);
+        }
+
+        public Task<Models.Movie?> GetMovieByIdTmdb(int id)
+        {
+            return this.Find(item => item.IdTmdb == id).FirstOrDefaultAsync();
         }
     }
 }

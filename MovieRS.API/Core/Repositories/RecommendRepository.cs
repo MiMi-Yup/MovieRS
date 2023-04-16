@@ -52,7 +52,7 @@ namespace MovieRS.API.Core.Repositories
                 .Take(takeMax > 0 ? takeMax + 10 : 10)
                 .Select(item => new { tmdbId = moviesRepo.Find(_item => _item.Id == movieIds.ElementAtOrDefault(item.index))?.IdTmdb, Score = item.Score })
                 .Where(item => item.tmdbId != null)
-                .Select(async item => new Recommendation { Score = item.Score, Movie = await _movieRepository.GetMovie(item.tmdbId.Value) });
+                .Select(async item => new Recommendation { Score = item.Score, Movie = await _movieRepository.GetMovieBy3rd(item.tmdbId.Value) });
             Recommendation[] movies = await Task.WhenAll(top10MovieIds);
             IEnumerable<Recommendation> filter = movies.Where(item => !float.IsNaN(item.Score) && item.Movie != null);
             if (takeMax > 0)
@@ -77,7 +77,7 @@ namespace MovieRS.API.Core.Repositories
                 .Take(takeMax > 0 ? takeMax + 10 : 10)
                 .Select(item => new { tmdbId = moviesRepo.Find(_item => _item.Id == movieIds.ElementAtOrDefault(item.index))?.IdTmdb, Score = item.Score })
                 .Where(item => item.tmdbId != null)
-                .Select(async item => new Recommendation { Score = item.Score, Movie = await _movieRepository.GetMovie(item.tmdbId.Value) });
+                .Select(async item => new Recommendation { Score = item.Score, Movie = await _movieRepository.GetMovieBy3rd(item.tmdbId.Value) });
             Recommendation[] movies = await Task.WhenAll(top10MovieIds);
             IEnumerable<Recommendation> filter = movies.Where(item => !float.IsNaN(item.Score) && item.Movie != null);
             if (takeMax > 0)

@@ -1,4 +1,6 @@
-﻿namespace MovieRS.API.Core.Contracts
+﻿using MovieRS.API.Models;
+
+namespace MovieRS.API.Core.Contracts
 {
     public interface IUnitOfWork
     {

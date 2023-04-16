@@ -13,7 +13,7 @@ public partial class User
 
     public byte[]? Password { get; set; }
 
-    public byte? CountryId { get; set; }
+    public short? CountryId { get; set; }
 
     public virtual Country? Country { get; set; }
 

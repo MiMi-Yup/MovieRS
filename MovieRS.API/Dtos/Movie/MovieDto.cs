@@ -1,4 +1,5 @@
-﻿using TMDbLib.Objects.General;
+﻿using MovieRS.API.Dtos.Search;
+using TMDbLib.Objects.General;
 using TMDbLib.Objects.Search;
 
 namespace MovieRS.API.Dtos.Movie

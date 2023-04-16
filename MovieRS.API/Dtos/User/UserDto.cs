@@ -5,6 +5,6 @@
         public int Id { get; set; }
         public string Username { get; set; } = null!;
         public string Email { get; set; } = null!;
-        public string? Country { get; set; }
+        public CountryDto? Country { get; set; }
     }
 }

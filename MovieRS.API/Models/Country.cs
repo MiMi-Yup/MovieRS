@@ -5,9 +5,11 @@ namespace MovieRS.API.Models;
 
 public partial class Country
 {
-    public byte Id { get; set; }
+    public short Id { get; set; }
 
     public string? Name { get; set; }
+
+    public string? Code { get; set; }
 
     public virtual ICollection<User> Users { get; } = new List<User>();
 }

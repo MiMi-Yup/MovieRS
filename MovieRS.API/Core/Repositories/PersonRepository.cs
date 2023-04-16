@@ -29,7 +29,7 @@ namespace MovieRS.API.Core.Repositories
                 Cast = (await Task.WhenAll(movie.Cast.Take(take > 0 ? take : movie.Cast.Count).Select(async item =>
                 {
                     TMDbLib.Objects.People.MovieRoleExtension role = item.Convert();
-                    role.Movie = await repository.GetMovie(item.Id);
+                    role.Movie = await repository.GetMovieBy3rd(item.Id);
                     return role;
                 }))).ToList()
             } : null;

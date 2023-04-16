@@ -5,6 +5,8 @@ namespace MovieRS.API.Models;
 
 public partial class Review
 {
+    public int Id { get; set; }
+
     public int UserId { get; set; }
 
     public int MovieId { get; set; }

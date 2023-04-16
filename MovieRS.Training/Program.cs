@@ -57,7 +57,7 @@ ITransformer BuildAndTrailModel(MLContext mlContext, IDataView trainingData)
         MatrixRowIndexColumnName = "movieIdEncoded",
         LabelColumnName = "Label",
         NumberOfIterations = 30,
-        ApproximationRank = 100
+        ApproximationRank = 100,
     };
     var trainerEstimator = estimator.Append(mlContext.Recommendation().Trainers.MatrixFactorization(options));
     Console.WriteLine("=============== Training the model ===============");

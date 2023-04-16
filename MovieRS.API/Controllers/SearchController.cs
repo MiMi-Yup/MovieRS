@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;
 using MovieRS.API.Dtos.Movie;
+using MovieRS.API.Dtos.Search;
 using MovieRS.API.Error;
 
 namespace MovieRS.API.Controllers

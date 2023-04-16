@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MovieRS.API.Attributes;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;

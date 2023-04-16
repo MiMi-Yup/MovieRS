@@ -1,4 +1,4 @@
-﻿namespace MovieRS.API.Dtos.Movie
+﻿namespace MovieRS.API.Dtos.Search
 {
     public class SearchContainerDto<T>
     {

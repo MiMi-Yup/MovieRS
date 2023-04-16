@@ -43,7 +43,7 @@ namespace MovieRS.API.Core.Repositories
             CollectionMovie = new CollectionRepository(_context, _logger, _mapper, _tmdb, Movie);
             Image = new ImageRepository(_tmdb);
             HistoryMovie = new HistoryMovieRepository(_context, _logger, _mapper, Movie);
-            Favorite = new FavouriteRepository(_context, _logger, _mapper);
+            Favorite = new FavouriteRepository(_context, _logger, _mapper, Movie);
             Recommend = new RecommendRepository(_logger, _mapper, _configuration, Movie, HistoryMovie, Favorite, mlContext);
         }
 

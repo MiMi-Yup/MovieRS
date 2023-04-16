@@ -53,14 +53,14 @@ namespace MovieRS.API.Core.Repositories
 
         public async Task<User?> GetById(string id)
         {
-            return await _context.Users.SingleOrDefaultAsync(item => item.Id.ToString() == id);
+            return await dbSet.Include(u => u.Country).SingleOrDefaultAsync(item => item.Id.ToString() == id);
         }
 
         public async Task<(User?, String)> Login(LoginDto loginDto)
         {
             byte[]? hashPassword = HashFunction.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
 
-            User? user = await _context.Users.SingleOrDefaultAsync(item => item.Email == loginDto.Email && item.Password == hashPassword);
+            User? user = await dbSet.SingleOrDefaultAsync(item => item.Email == loginDto.Email && item.Password == hashPassword);
 
             if (user != null)
             {

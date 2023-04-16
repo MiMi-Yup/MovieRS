@@ -19,7 +19,7 @@ namespace MovieRS.API.Core.Repositories
         {
             var collection = await _tmdb.Client.GetCollectionAsync(id);
             var convertCollection = collection.Convert();
-            convertCollection.Parts = (await Task.WhenAll(collection.Parts.Select(item => _movieRepository.GetMovie(item.Id)))).ToList();
+            convertCollection.Parts = (await Task.WhenAll(collection.Parts.Select(item => _movieRepository.GetMovieBy3rd(item.Id)))).ToList();
             return convertCollection;
         }
 
