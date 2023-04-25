@@ -13,5 +13,6 @@ namespace MovieRS.API.Core.Contracts
         IRecommendRepository Recommend { get; }
         IHistoryMovieRepository HistoryMovie { get; }
         IFavouriteRepository Favorite { get; }
+        IVideoAPI VideoAPI { get; }
     }
 }

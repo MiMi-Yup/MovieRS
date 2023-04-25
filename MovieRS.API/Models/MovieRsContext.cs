@@ -25,6 +25,8 @@ public partial class MovieRsContext : DbContext
 
     public virtual DbSet<Movie> Movies { get; set; }
 
+    public virtual DbSet<Param> Params { get; set; }
+
     public virtual DbSet<RawTrainingModel> RawTrainingModels { get; set; }
 
     public virtual DbSet<Review> Reviews { get; set; }
@@ -115,6 +117,17 @@ public partial class MovieRsContext : DbContext
                         j.HasKey("MovieId", "GenreId").HasName("PkDetailGenre");
                         j.ToTable("DETAIL_GENRE");
                     });
+        });
+
+        modelBuilder.Entity<Param>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PARAMS__3214EC0707E93F9A");
+
+            entity.ToTable("PARAMS");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(100)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<RawTrainingModel>(entity =>

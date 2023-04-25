@@ -23,7 +23,7 @@ builder.Services.AddDbContext<MovieRsContext>(options =>
 builder.Services.ConfigureAuthentication(builder.Configuration);
 builder.Services.ConfigureExternalAPI();
 builder.Services.AddSwaggerGen(options => options.ConfigureSwaggerOptions());
-builder.Services.ConfigureRepositorysitory();
+builder.Services.ConfigureRepository();
 builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();

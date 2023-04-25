@@ -13,11 +13,13 @@ namespace MovieRS.API.Core.Repositories
     {
         private readonly ITMDb _tmdb;
         private readonly IReviewRepository _reviewRepository;
+        private readonly IVideoAPI _videoAPI;
 
-        public MovieRepository(MovieRsContext context, ILogger logger, IMapper mapper, ITMDb tmdb, IReviewRepository reviewRepository) : base(context, logger, mapper)
+        public MovieRepository(MovieRsContext context, ILogger logger, IMapper mapper, ITMDb tmdb, IReviewRepository reviewRepository, IVideoAPI videoAPI) : base(context, logger, mapper)
         {
             _tmdb = tmdb;
             _reviewRepository = reviewRepository;
+            _videoAPI = videoAPI;
         }
 
         public async Task<TMDbLib.Objects.General.ImagesWithId> GetImages(int id, int take = 0)
@@ -71,13 +73,15 @@ namespace MovieRS.API.Core.Repositories
                     });
 
                 //check ngrok and pass link
-                filteredVideo.Add(new TMDbLib.Objects.General.Video
-                {
-                    Iso_639_1 = "vi",
-                    Site = "Custom",
-                    Type = "Full",
-                    Key = /*"<PASS LINK TO HERE>"*/"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
-                });
+                string linkFull = await _videoAPI.GetLink(id);
+                if (!string.IsNullOrEmpty(linkFull))
+                    filteredVideo.Add(new TMDbLib.Objects.General.Video
+                    {
+                        Iso_639_1 = "vi",
+                        Site = "Custom",
+                        Type = "Full",
+                        Key = linkFull
+                    });
 
                 return new TMDbLib.Objects.General.ResultContainer<TMDbLib.Objects.General.Video>
                 {

@@ -22,10 +22,9 @@ namespace MovieRS.API.Core.Repositories
         public IPersonRepository Person { get; private set; }
         public IImageRepository Image { get; private set; }
         public IReviewRepository Review { get; private set; }
-
         public IHistoryMovieRepository HistoryMovie { get; private set; }
-
         public IFavouriteRepository Favorite { get; private set; }
+        public IVideoAPI VideoAPI { get; private set; }
 
         public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration, ITMDb tmdb, MLContext mlContext)
         {
@@ -38,7 +37,8 @@ namespace MovieRS.API.Core.Repositories
             Country = new CountryRepository(_context, _logger, _mapper, _configuration);
             User = new UserRepository(_context, _configuration, Country, _logger, _mapper);
             Review = new ReviewRepository(_context, _logger, _mapper, User);
-            Movie = new MovieRepository(_context, _logger, _mapper, _tmdb, Review);
+            VideoAPI = new VideoAPI(_context, _logger, _mapper);
+            Movie = new MovieRepository(_context, _logger, _mapper, _tmdb, Review, VideoAPI);
             Person = new PersonRepository(_tmdb);
             CollectionMovie = new CollectionRepository(_context, _logger, _mapper, _tmdb, Movie);
             Image = new ImageRepository(_tmdb);

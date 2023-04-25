@@ -17,9 +17,9 @@ public partial class User
 
     public virtual Country? Country { get; set; }
 
-    public virtual ICollection<Favourite> Favourites { get; } = new List<Favourite>();
+    public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 
-    public virtual ICollection<History> Histories { get; } = new List<History>();
+    public virtual ICollection<History> Histories { get; set; } = new List<History>();
 
-    public virtual ICollection<Review> Reviews { get; } = new List<Review>();
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

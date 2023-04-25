@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MovieRS.API.Attributes;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;
 using MovieRS.API.Dtos.Movie;
@@ -8,6 +9,7 @@ using MovieRS.API.Dtos.Review;
 using MovieRS.API.Dtos.Search;
 using MovieRS.API.Error;
 using MovieRS.API.Models;
+using System.Text.Json.Serialization;
 
 namespace MovieRS.API.Controllers
 {
@@ -25,6 +27,17 @@ namespace MovieRS.API.Controllers
             _logger = logger;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+        }
+
+        [HttpPost]
+        [Route("video-api")]
+        [Protect]
+        public async Task<IActionResult> UpdateVideoApi(VideoDomainDto domain)
+        {
+            bool success = string.IsNullOrEmpty(domain.Domain) 
+                ? false 
+                : await _unitOfWork.VideoAPI.UpdateDomain(domain.Domain);
+            return success ? Ok() : BadRequest();
         }
 
         [HttpGet]

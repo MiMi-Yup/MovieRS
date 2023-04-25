@@ -21,7 +21,7 @@ namespace MovieRS.API.Extensions
             .AllowAnyHeader().AllowCredentials());
         });
 
-        public static void ConfigureRepositorysitory(this IServiceCollection services) => services
+        public static void ConfigureRepository(this IServiceCollection services) => services
             .AddScoped<IUnitOfWork, UnitOfWork>()
             .AddSingleton<MLContext, MLContext>();
 

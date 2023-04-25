@@ -13,13 +13,13 @@ public partial class Movie
 
     public short? YearRelease { get; set; }
 
-    public virtual ICollection<Favourite> Favourites { get; } = new List<Favourite>();
+    public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 
-    public virtual ICollection<History> Histories { get; } = new List<History>();
+    public virtual ICollection<History> Histories { get; set; } = new List<History>();
 
-    public virtual ICollection<RawTrainingModel> RawTrainingModels { get; } = new List<RawTrainingModel>();
+    public virtual ICollection<RawTrainingModel> RawTrainingModels { get; set; } = new List<RawTrainingModel>();
 
-    public virtual ICollection<Review> Reviews { get; } = new List<Review>();
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
-    public virtual ICollection<Genre> Genres { get; } = new List<Genre>();
+    public virtual ICollection<Genre> Genres { get; set; } = new List<Genre>();
 }

@@ -19,6 +19,8 @@ namespace MovieRS.API.Attributes
             var user = context.HttpContext.Items["User"] as User;
             if (user == null)
                 context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
+            if (user!.Id != 611)
+                context.Result = new JsonResult(new { message = "Forbidden" }) { StatusCode = StatusCodes.Status403Forbidden };
         }
     }
 }
