@@ -28,7 +28,7 @@ namespace MovieRS.API.Controllers
         [Produces(typeof(ApiResponse<SearchContainerDto<CountryDto>>))]
         public async Task<IActionResult> GetCountries([FromQuery] int? page, [FromQuery] int? take)
         {
-            TMDbLib.Objects.General.SearchContainer<Models.Country> container = await _unitOfWork.Country.GetAll(page ?? 1, take ?? 0);
+            TMDbLib.Objects.General.SearchContainer<Models.Country> container = await _unitOfWork.Country.GetAll(page ?? 0, take ?? 0);
             return Ok(new ApiResponse<SearchContainerDto<CountryDto>>(_mapper.Map<SearchContainerDto<CountryDto>>(container), "OK"));
         }
     }

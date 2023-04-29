@@ -45,6 +45,9 @@ public partial class MovieRsContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false);
             entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.NameVi)
+                .HasMaxLength(100)
+                .HasColumnName("Name_Vi");
         });
 
         modelBuilder.Entity<Favourite>(entity =>

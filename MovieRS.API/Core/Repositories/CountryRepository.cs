@@ -14,16 +14,17 @@ namespace MovieRS.API.Core.Repositories
             _configuration = configuration;
         }
 
-        public async Task<TMDbLib.Objects.General.SearchContainer<Models.Country>> GetAll(int page = 1, int take = 0)
+        public async Task<TMDbLib.Objects.General.SearchContainer<Models.Country>> GetAll(int page = 0, int take = 0)
         {
             const int itemOfPage = 10;
             int count = dbSet.Count();
+            page = page > 0 ? page : 0;
             return new TMDbLib.Objects.General.SearchContainer<Country>
             {
-                Page = page > 1 ? page : 1,
-                TotalPages = count / itemOfPage + (count % itemOfPage > 0 ? 1 : 0),
+                Page = page,
+                TotalPages = page > 0 ? count / itemOfPage + (count % itemOfPage > 0 ? 1 : 0) : 1,
                 TotalResults = count,
-                Results = await dbSet.Skip(page > 1 ? (page - 1) * itemOfPage : 0).Take(take > 0 ? take : itemOfPage).ToListAsync()
+                Results = await dbSet.Skip(page > 1 ? (page - 1) * itemOfPage : 0).Take(page > 0 ? take > 0 ? take : itemOfPage : 1000).ToListAsync()
             };
         }
 
