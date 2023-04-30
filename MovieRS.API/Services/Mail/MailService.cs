@@ -20,10 +20,10 @@ namespace MovieRS.API.Services.Mail
             {
                 MimeMessage mail = new MimeMessage();
                 mail.To.Add(MailboxAddress.Parse(user.Email));
-                mail.Subject = "T";
+                mail.Subject = "[MovieRS]Restore Account";
                 var builder = new BodyBuilder();
 
-                builder.HtmlBody = $@"Tesst";
+                builder.HtmlBody = $"Verification Code <h1>{token}</h1>";
                 mail.Body = builder.ToMessageBody();
                 await this.SendMail(mail);
             }

@@ -1,4 +1,5 @@
-﻿using MovieRS.API.Dtos.User;
+﻿using MovieRS.API.Dtos;
+using MovieRS.API.Dtos.User;
 using MovieRS.API.Models;
 
 namespace MovieRS.API.Core.Contracts
@@ -7,7 +8,9 @@ namespace MovieRS.API.Core.Contracts
     {
         Task<(User?, String)> Login(LoginDto loginDto);
         Task<User?> GetById(string id);
-        Task<bool> FindByEmail(string email);
+        Task<User?> FindByEmail(string email);
+        Task<bool> UpdatePassword(LoginDto updateAccount);
+        Task UpdateCountry(User user, CountryDto countryDto);
         Task<User> CreateNewUser(RegisterUserDto registerUserDto);
     }
 }

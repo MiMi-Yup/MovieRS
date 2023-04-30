@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using MovieRS.API.Core.Contracts;
+using MovieRS.API.Dtos;
 using MovieRS.API.Dtos.User;
 using MovieRS.API.Error;
+using MovieRS.API.Helper;
 using MovieRS.API.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -17,7 +19,6 @@ namespace MovieRS.API.Core.Repositories
     {
         private readonly IConfiguration _configuration;
         private readonly ICountryRepository _countryRepository;
-        private static readonly SHA256 HashFunction = SHA256.Create();
 
         public UserRepository(MovieRsContext context, IConfiguration configuration, ICountryRepository countryRepository, ILogger logger, IMapper mapper) : base(context, logger, mapper)
         {
@@ -30,7 +31,7 @@ namespace MovieRS.API.Core.Repositories
             User newUser = new User
             {
                 Username = registerUserDto.Username,
-                Password = HashFunction.ComputeHash(Encoding.UTF8.GetBytes(registerUserDto.Password)),
+                Password = HashHelper.Hash(registerUserDto.Password),
                 Email = registerUserDto.Email
             };
             await this.Add(newUser);
@@ -38,16 +39,16 @@ namespace MovieRS.API.Core.Repositories
             return newUser;
         }
 
-        public async Task<bool> FindByEmail(string email)
+        public async Task<User?> FindByEmail(string email)
         {
             try
             {
-                return await this.Find(user => user.Email == email).AnyAsync();
+                return await this.Find(user => user.Email == email).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "{Repository} FindUserByEmail function error", typeof(UserRepository));
-                return true;
+                return null;
             }
         }
 
@@ -58,7 +59,7 @@ namespace MovieRS.API.Core.Repositories
 
         public async Task<(User?, String)> Login(LoginDto loginDto)
         {
-            byte[]? hashPassword = HashFunction.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
+            byte[]? hashPassword = HashHelper.Hash(loginDto.Password);
 
             User? user = await dbSet.SingleOrDefaultAsync(item => item.Email == loginDto.Email && item.Password == hashPassword);
 
@@ -87,6 +88,23 @@ namespace MovieRS.API.Core.Repositories
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public async Task<bool> UpdatePassword(LoginDto updateAccount)
+        {
+            User? user = await dbSet.FirstOrDefaultAsync(item => item.Email == updateAccount.Email);
+            if (user != null)
+            {
+                user.Password = HashHelper.Hash(updateAccount.Password);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public Task UpdateCountry(User user, CountryDto countryDto)
+        {
+            throw new NotImplementedException();
         }
     }
 }

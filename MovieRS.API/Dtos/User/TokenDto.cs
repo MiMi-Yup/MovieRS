@@ -1,9 +1,9 @@
 ﻿namespace MovieRS.API.Dtos.User
 {
-    public class TokenDto
+    public class TokenDto<T>
     {
         public string Value { get; set; } = null!;
         public DateTime ExpiredAt;
-        public RegisterUserDto User = null!;
+        public T? User;
     }
 }
