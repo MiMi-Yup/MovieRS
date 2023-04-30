@@ -48,9 +48,17 @@ namespace MovieRS.API.Controllers
             if (user == null)
                 return Unauthorized(new ApiException("User not exists", System.Net.HttpStatusCode.Unauthorized));
             var result = await _unitOfWork.Favorite.NewFavourites(new NewFavouriteDto { UserId = user.Id, MovieId = idMovie });
-            return result
-                ? Ok(new ApiResponse<bool>(true, "OK"))
-                : NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound));
+            switch (result)
+            {
+                case 0:
+                    return Ok(new ApiResponse<bool>(true, "OK"));
+                case 1:
+                    return BadRequest(new { message = "Has already favourited" });
+                case -1:
+                    return NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound));
+                default:
+                    return BadRequest();
+            }
         }
 
         [HttpDelete]

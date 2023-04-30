@@ -6,7 +6,7 @@ namespace MovieRS.API.Core.Contracts
     public interface IFavouriteRepository
     {
         Task<SearchContainerWithId<TMDbLib.Objects.Movies.Movie>> GetFavourites(Models.User user, int page = 1, int take = 0);
-        Task<bool> NewFavourites(NewFavouriteDto newFavourite);
+        Task<int> NewFavourites(NewFavouriteDto newFavourite);
         Task<bool> DeleteFavourites(Models.User user, int idTmdb);
     }
 }

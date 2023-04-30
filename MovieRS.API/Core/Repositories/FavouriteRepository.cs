@@ -48,7 +48,7 @@ namespace MovieRS.API.Core.Repositories
             };
         }
 
-        public async Task<bool> NewFavourites(NewFavouriteDto newFavourite)
+        public async Task<int> NewFavourites(NewFavouriteDto newFavourite)
         {
             try
             {
@@ -56,14 +56,16 @@ namespace MovieRS.API.Core.Repositories
                 if (find == null)
                 {
                     await _movieRepository.NewVideo(newFavourite.MovieId);
+                    find = await _movieRepository.GetMovieByIdTmdb(newFavourite.MovieId);
                 }
-                find = await _movieRepository.GetMovieByIdTmdb(newFavourite.MovieId);
+                Models.Favourite? favFind = await dbSet.SingleOrDefaultAsync(item => item.UserId == newFavourite.UserId && item.MovieId == find.Id);
+                if (favFind != null) return 1;
                 if (await this.Add(new Models.Favourite { UserId = newFavourite.UserId, MovieId = find.Id }))
                 {
                     await _context.SaveChangesAsync();
-                    return true;
+                    return 0;
                 }
-                return false;
+                return -1;
             }
             catch (Exception ex)
             {
