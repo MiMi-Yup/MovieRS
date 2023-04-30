@@ -2,41 +2,106 @@
 using Microsoft.EntityFrameworkCore;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos.Review;
-using MovieRS.API.Error;
 using MovieRS.API.Models;
+using TMDbLib.Objects.General;
+using TMDbLib.Objects.Reviews;
 
 namespace MovieRS.API.Core.Repositories
 {
-    public class ReviewRepository : GenericRepository<Review>, IReviewRepository
+    public class ReviewRepository : GenericRepository<Models.Review>, IReviewRepository
     {
-        private readonly IUserRepository _userRepository;
-        public ReviewRepository(MovieRsContext context, ILogger logger, IMapper mapper, IUserRepository userRepository) : base(context, logger, mapper)
+        private readonly IUnitOfWork _unitOfWork;
+        public ReviewRepository(MovieRsContext context, ILogger logger, IMapper mapper, IUnitOfWork unitOfWork) : base(context, logger, mapper)
         {
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
 
-        public Task<bool> DeleteReviews(int id)
+        public async Task<bool> DeleteReview(User user, int id)
         {
-            return this.Delete(id);
+            Models.Review? review = await dbSet.FindAsync(id);
+            if (review == null || review.UserId != user.Id)
+                return false;
+            dbSet.Remove(review);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
-        public Task<Review> GetReviewsById(int id)
+        public Task<ReviewBaseExtension?> GetReviewById(int id)
         {
-            return this.FindById(id);
+            Models.Review? review = dbSet.Include(r => r.User).FirstOrDefault(item => item.Id == id);
+            return Task.FromResult(review == null ? null : new ReviewBaseExtension
+            {
+                Author = review.User.Username,
+                Content = review.Content,
+                Id = review.Id.ToString(),
+                Rating = System.Convert.ToDouble(review.Rating),
+                CreatedAt = review.TimeStamp,
+                AuthorDetails = new AuthorDetailsExtension
+                {
+                    Id = review.User.Id,
+                    Username = review.User.Username,
+                    Email = review.User.Email,
+                    Country = review.User.Country,
+                    AvatarPath = null,
+                }
+            });
         }
 
-        public Task<List<Review>> GetReviewsByIdMovie(int id)
+        public async Task<SearchContainerWithId<UserReview>> GetReviews(User user, int page = 1, int take = 0)
         {
-            return dbSet.Include(r => r.User).Where(item => item.Movie.IdTmdb == id).ToListAsync();
+            const int MAX_ITEM_OF_PAGE = 10;
+            IQueryable<Models.Review> query = dbSet.Include(u => u.User).Include(m => m.Movie)
+                .Where(item => item.UserId == user.Id && !string.IsNullOrWhiteSpace(item.Content))
+                .AsNoTracking();
+            int count = query.Count();
+            page = page > 1 ? page : 1;
+            return new TMDbLib.Objects.General.SearchContainerWithId<UserReview>
+            {
+                Id = user.Id,
+                Page = page,
+                TotalPages = (int)Math.Ceiling(count * 1.0 / MAX_ITEM_OF_PAGE),
+                TotalResults = count,
+                Results = (await Task.WhenAll(query.Skip((page - 1) * MAX_ITEM_OF_PAGE).Take(take > 0 ? take : MAX_ITEM_OF_PAGE).ToList().Select(async item => new UserReview
+                {
+                    Content = item.Content,
+                    Id = item.Id.ToString(),
+                    Rating = System.Convert.ToDouble(item.Rating),
+                    CreatedAt = item.TimeStamp,
+                    Movie = await _unitOfWork.Movie.GetMovieBy3rd(item.Movie.IdTmdb.Value)
+                }))).ToList()
+            };
         }
 
-        public async Task<bool> NewReviews(User user, Movie movie, NewReviewDto review)
+        public Task<List<Models.Review>> GetReviewsByIdMovie(int id)
         {
-            if (user == null || review == null)
-                throw new ApiException("Null value exception", System.Net.HttpStatusCode.BadRequest);
-            Review newReview = new Review { UserId = user.Id, Content = review.Content, Rating = Convert.ToDecimal(review.Rating), TimeStamp = DateTime.Now, MovieId = movie.Id };
+            return dbSet.Include(r => r.User).Where(item => item.Movie.IdTmdb == id && !string.IsNullOrWhiteSpace(item.Content)).ToListAsync();
+        }
+
+        public async Task<bool> NewReview(User user, Movie movie, NewReviewDto review)
+        {
+            Models.Review newReview = new Models.Review
+            {
+                UserId = user.Id,
+                Content = review.Content,
+                Rating = Convert.ToDecimal(review.Rating),
+                TimeStamp = DateTime.Now,
+                MovieId = movie.Id
+            };
             if (await this.Add(newReview))
                 await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateReview(User user, NewReviewDto newReview)
+        {
+            Models.Review? review = await dbSet.FindAsync(newReview.Id);
+            if (review == null || review.UserId != user.Id)
+                return false;
+            review.Content = newReview.Content;
+            review.Rating = newReview.Rating == null
+                ? review.Rating
+                : Convert.ToDecimal(newReview.Rating);
+            await _context.SaveChangesAsync();
             return true;
         }
     }

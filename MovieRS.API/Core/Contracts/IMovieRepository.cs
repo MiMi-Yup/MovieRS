@@ -17,7 +17,7 @@ namespace MovieRS.API.Core.Contracts
         Task<TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Movies.Movie>?> GetTopRated(int page = 1, int take = 0);
         Task<TMDbLib.Objects.Movies.CreditsExtension?> GetActors(IPersonRepository repository, int id, int take = 0);
         Task<TMDbLib.Objects.General.ResultContainer<TMDbLib.Objects.General.Video>> GetVideos(int id);
-        Task<bool> NewReview(Models.User user, int idTmdb, NewReviewDto newReview);
+        Task<bool> NewReview(Models.User user, NewReviewDto newReview);
         Task<IEnumerable<MovieRS.API.Models.Movie>> GetLocalVideos();
 
         Task<bool> NewVideo(int idTmdb);

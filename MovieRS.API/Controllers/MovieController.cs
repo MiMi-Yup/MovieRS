@@ -8,8 +8,6 @@ using MovieRS.API.Dtos.Movie;
 using MovieRS.API.Dtos.Review;
 using MovieRS.API.Dtos.Search;
 using MovieRS.API.Error;
-using MovieRS.API.Models;
-using System.Text.Json.Serialization;
 
 namespace MovieRS.API.Controllers
 {
@@ -34,8 +32,8 @@ namespace MovieRS.API.Controllers
         [Protect]
         public async Task<IActionResult> UpdateVideoApi(VideoDomainDto domain)
         {
-            bool success = string.IsNullOrEmpty(domain.Domain) 
-                ? false 
+            bool success = string.IsNullOrEmpty(domain.Domain)
+                ? false
                 : await _unitOfWork.VideoAPI.UpdateDomain(domain.Domain);
             return success ? Ok() : BadRequest();
         }
@@ -104,28 +102,6 @@ namespace MovieRS.API.Controllers
             return movie == null
                 ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
                 : Ok(new ApiResponse<SearchContainerWithIdDto<ReviewDto>>(_mapper.Map<SearchContainerWithIdDto<ReviewDto>>(movie), "OK"));
-        }
-
-        [HttpPost]
-        [Route("{id}/review")]
-        public async Task<IActionResult> NewReview(int id, NewReviewDto newReview)
-        {
-            try
-            {
-                User? user = HttpContext.Items["User"] as User;
-                if (user != null)
-                {
-                    await _unitOfWork.Movie.NewReview(user, id, newReview);
-                    return Ok(new ApiResponse<bool>(true, "OK"));
-                }
-                else
-                    return Unauthorized(new ApiException("User not exists", System.Net.HttpStatusCode.Unauthorized));
-
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiException("Error new review", System.Net.HttpStatusCode.InternalServerError));
-            }
         }
 
         [HttpGet]

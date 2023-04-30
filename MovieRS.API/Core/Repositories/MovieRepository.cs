@@ -132,15 +132,15 @@ namespace MovieRS.API.Core.Repositories
             return null;
         }
 
-        public async Task<bool> NewReview(User user, int idTmdb, NewReviewDto newReview)
+        public async Task<bool> NewReview(User user, NewReviewDto newReview)
         {
-            if (!this.Find(item => item.IdTmdb == idTmdb).Any())
+            if (!this.Find(item => item.IdTmdb == newReview.Id).Any())
             {
-                await NewVideo(idTmdb);
+                await NewVideo(newReview.Id);
             }
-            Models.Movie? movie = await this.Find(item => item.IdTmdb == idTmdb).FirstOrDefaultAsync();
+            Models.Movie? movie = await this.Find(item => item.IdTmdb == newReview.Id).FirstOrDefaultAsync();
             if (movie != null)
-                return await _reviewRepository.NewReviews(user, movie, newReview);
+                return await _reviewRepository.NewReview(user, movie, newReview);
             return false;
         }
 
@@ -206,6 +206,7 @@ namespace MovieRS.API.Core.Repositories
                 }));
             }
             totalReview.AddRange(_review);
+            totalReview = totalReview.Where(item => !string.IsNullOrWhiteSpace(item.Content)).ToList();
             return new TMDbLib.Objects.General.SearchContainerWithId<ReviewBaseExtension>
             {
                 Id = review.Id,

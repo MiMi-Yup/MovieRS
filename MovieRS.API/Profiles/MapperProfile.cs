@@ -90,6 +90,10 @@ namespace MovieRS.API.Profiles
             CreateMap<HistoryMovie, HistoryDto>();
 
             CreateMap<TMDbLib.Objects.General.SearchContainerWithId<HistoryMovie>, SearchContainerWithIdDto<HistoryDto>>();
+
+            CreateMap<UserReview, UserReviewDto>();
+
+            CreateMap<TMDbLib.Objects.General.SearchContainerWithId<UserReview>, SearchContainerWithIdDto<UserReviewDto>>();
         }
     }
 }

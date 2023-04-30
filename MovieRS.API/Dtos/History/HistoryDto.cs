@@ -6,6 +6,5 @@ namespace MovieRS.API.Dtos.History
     {
         public DateTime? TimeStamp { get; set; }
         public MovieDto? Movie { get; set; }
-        public double Rating { get; set; }
     }
 }

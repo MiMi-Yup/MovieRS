@@ -36,7 +36,7 @@ namespace MovieRS.API.Core.Repositories
 
             Country = new CountryRepository(_context, _logger, _mapper, _configuration);
             User = new UserRepository(_context, _configuration, Country, _logger, _mapper);
-            Review = new ReviewRepository(_context, _logger, _mapper, User);
+            Review = new ReviewRepository(_context, _logger, _mapper, this);
             VideoAPI = new VideoAPI(_context, _logger, _mapper);
             Movie = new MovieRepository(_context, _logger, _mapper, _tmdb, Review, VideoAPI);
             Person = new PersonRepository(_tmdb);

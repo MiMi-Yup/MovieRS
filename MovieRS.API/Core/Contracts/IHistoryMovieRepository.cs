@@ -6,7 +6,8 @@ namespace MovieRS.API.Core.Contracts
     {
         Task<TMDbLib.Objects.General.SearchContainerWithId<HistoryMovie>> GetHistories(Models.User user, int page = 1, int take = 0);
         Task<bool> ClearHistory(Models.User user);
-        Task<bool> AddHistory(Models.User user, AddHistoryDto addHistory);
+        Task<bool> DeleteHistory(Models.User user, int idTmdb);
+        Task<bool> AddHistory(Models.User user, int idTmdb);
     }
 
     public class HistoryMovie

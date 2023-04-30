@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos.History;
 using MovieRS.API.Error;
+using MovieRS.API.Models;
 
 namespace MovieRS.API.Core.Repositories
 {
@@ -42,8 +43,7 @@ namespace MovieRS.API.Core.Repositories
                 .Select(async item => new HistoryMovie
                 {
                     TimeStamp = item.TimeStamp,
-                    Movie = await _movieRepository.GetMovieBy3rd(item.Movie.IdTmdb!.Value),
-                    Rating = item.Rating == null ? null : Convert.ToDouble(item.Rating)
+                    Movie = await _movieRepository.GetMovieBy3rd(item.Movie.IdTmdb!.Value)
                 }));
             return new TMDbLib.Objects.General.SearchContainerWithId<HistoryMovie>
             {
@@ -55,20 +55,17 @@ namespace MovieRS.API.Core.Repositories
             };
         }
 
-        public async Task<bool> AddHistory(Models.User user, AddHistoryDto addHistory)
+        public async Task<bool> AddHistory(Models.User user, int idTmdb)
         {
-            Models.Movie? movie = await _movieRepository.GetMovieByIdTmdb(addHistory.IdMovie);
-            if (movie == null && await _movieRepository.NewVideo(addHistory.IdMovie))
-                movie = await _movieRepository.GetMovieByIdTmdb(addHistory.IdMovie);
+            Models.Movie? movie = await _movieRepository.GetMovieByIdTmdb(idTmdb);
+            if (movie == null && await _movieRepository.NewVideo(idTmdb))
+                movie = await _movieRepository.GetMovieByIdTmdb(idTmdb);
             if (movie != null)
             {
                 Models.History? history = await dbSet.SingleOrDefaultAsync(item => item.UserId == user.Id && item.MovieId == movie.Id);
                 if (history != null)
                 {
                     history.TimeStamp = DateTime.Now;
-                    history.Rating = addHistory.Rating == null 
-                        ? history.Rating 
-                        : Convert.ToDecimal(addHistory.Rating);
                 }
                 else
                 {
@@ -76,10 +73,7 @@ namespace MovieRS.API.Core.Repositories
                     {
                         MovieId = movie.Id,
                         UserId = user.Id,
-                        TimeStamp = DateTime.Now,
-                        Rating = addHistory.Rating == null
-                            ? null
-                            : Convert.ToDecimal(addHistory.Rating)
+                        TimeStamp = DateTime.Now
                     };
                     await this.Add(history);
                 }
@@ -87,6 +81,22 @@ namespace MovieRS.API.Core.Repositories
                 return true;
             }
 
+            return false;
+        }
+
+        public async Task<bool> DeleteHistory(User user, int idTmdb)
+        {
+            Models.Movie? movie = await _movieRepository.GetMovieByIdTmdb(idTmdb);
+            if (movie != null)
+            {
+                History? history = await dbSet.FirstOrDefaultAsync(item => item.UserId == user.Id && item.MovieId == movie.Id);
+                if (history != null)
+                {
+                    dbSet.Remove(history);
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+            }
             return false;
         }
     }
