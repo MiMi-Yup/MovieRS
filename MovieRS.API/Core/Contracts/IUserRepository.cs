@@ -10,6 +10,7 @@ namespace MovieRS.API.Core.Contracts
         Task<User?> GetById(string id);
         Task<User?> FindByEmail(string email);
         Task<bool> UpdatePassword(LoginDto updateAccount);
+        Task<bool> UpdatePassword(User user, ChangePasswordDto changePassword);
         Task UpdateCountry(User user, CountryDto countryDto);
         Task<User> CreateNewUser(RegisterUserDto registerUserDto);
     }

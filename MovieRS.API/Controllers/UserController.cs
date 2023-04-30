@@ -138,5 +138,18 @@ namespace MovieRS.API.Controllers
             var movie = await _unitOfWork.Recommend.GetMovieGenreRecommendation(user!, takeMax ?? 0);
             return Ok(new ApiResponse<ResultRecommendationDto>(_mapper.Map<ResultRecommendationDto>(movie), "OK"));
         }
+
+        [HttpPost]
+        [Route("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto change)
+        {
+            User? user = HttpContext.Items["User"] as User;
+            if (user != null && await _unitOfWork.User.UpdatePassword(user, change))
+                return Ok();
+            return BadRequest(new
+            {
+                message = "Wrong old password"
+            });
+        }
     }
 }

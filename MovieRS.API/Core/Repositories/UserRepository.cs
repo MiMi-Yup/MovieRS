@@ -110,5 +110,25 @@ namespace MovieRS.API.Core.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public async Task<bool> UpdatePassword(User user, ChangePasswordDto changePassword)
+        {
+            if (string.IsNullOrWhiteSpace(changePassword.OldPassword)
+                || string.IsNullOrWhiteSpace(changePassword.NewPassword))
+                return false;
+            byte[] bytesOld = HashHelper.Hash(changePassword.OldPassword);
+            
+            if (Enumerable.SequenceEqual(user.Password, bytesOld))
+            {
+                User? find = await dbSet.FindAsync(user.Id);
+                if (find != null)
+                {
+                    find.Password = HashHelper.Hash(changePassword.NewPassword);
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
