@@ -11,6 +11,8 @@ public partial class History
 
     public DateTime? TimeStamp { get; set; }
 
+    public decimal? Rating { get; set; }
+
     public virtual Movie Movie { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

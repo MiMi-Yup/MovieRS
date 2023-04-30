@@ -92,13 +92,13 @@ namespace MovieRS.API.Controllers
         }
 
         [HttpPost]
-        [Route("histories/{idMovie}")]
-        public async Task<IActionResult> AddHistory(int idMovie)
+        [Route("histories")]
+        public async Task<IActionResult> AddHistory(AddHistoryDto addHistory)
         {
             User? user = HttpContext.Items["User"] as User;
             if (user == null)
                 return Unauthorized(new ApiException("User not exists", System.Net.HttpStatusCode.Unauthorized));
-            var result = await _unitOfWork.HistoryMovie.AddHistory(user, idMovie);
+            var result = await _unitOfWork.HistoryMovie.AddHistory(user, addHistory);
             return result
                 ? Ok(new ApiResponse<bool>(true, "OK"))
                 : NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound));

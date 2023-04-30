@@ -85,6 +85,7 @@ public partial class MovieRsContext : DbContext
 
             entity.ToTable("HISTORY");
 
+            entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
             entity.Property(e => e.TimeStamp).HasColumnType("datetime");
 
             entity.HasOne(d => d.Movie).WithMany(p => p.Histories)

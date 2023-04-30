@@ -50,22 +50,32 @@ namespace MovieRS.API.Core.Repositories
             };
         }
 
-        public async Task<bool> AddHistory(Models.User user, int idTmdb)
+        public async Task<bool> AddHistory(Models.User user, AddHistoryDto addHistory)
         {
-            Models.Movie? movie = await _movieRepository.GetMovieByIdTmdb(idTmdb);
-            if (movie == null && await _movieRepository.NewVideo(idTmdb))
-                movie = await _movieRepository.GetMovieByIdTmdb(idTmdb);
+            Models.Movie? movie = await _movieRepository.GetMovieByIdTmdb(addHistory.IdMovie);
+            if (movie == null && await _movieRepository.NewVideo(addHistory.IdMovie))
+                movie = await _movieRepository.GetMovieByIdTmdb(addHistory.IdMovie);
             if (movie != null)
             {
                 Models.History? history = await dbSet.SingleOrDefaultAsync(item => item.UserId == user.Id && item.MovieId == movie.Id);
                 if (history != null)
                 {
                     history.TimeStamp = DateTime.Now;
-
+                    history.Rating = addHistory.Rating == null 
+                        ? history.Rating 
+                        : Convert.ToDecimal(addHistory.Rating);
                 }
                 else
                 {
-                    history = new Models.History { MovieId = movie.Id, UserId = user.Id, TimeStamp = DateTime.Now };
+                    history = new Models.History
+                    {
+                        MovieId = movie.Id,
+                        UserId = user.Id,
+                        TimeStamp = DateTime.Now,
+                        Rating = addHistory.Rating == null
+                            ? null
+                            : Convert.ToDecimal(addHistory.Rating)
+                    };
                     await this.Add(history);
                 }
                 await _context.SaveChangesAsync();
