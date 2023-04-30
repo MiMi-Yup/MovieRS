@@ -13,5 +13,6 @@ namespace MovieRS.API.Core.Contracts
     {
         public DateTime? TimeStamp { get; set; }
         public TMDbLib.Objects.Movies.Movie? Movie { get; set; }
+        public double? Rating { get; set; }
     }
 }

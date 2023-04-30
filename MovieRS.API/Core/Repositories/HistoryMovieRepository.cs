@@ -39,7 +39,12 @@ namespace MovieRS.API.Core.Repositories
                 .Take(take > 0 ? take : MAX_ITEM_OF_PAGE);
             HistoryMovie[] movies = await Task.WhenAll(rangeHistories
                 .Where(item => item.Movie.IdTmdb != null)
-                .Select(async item => new HistoryMovie { TimeStamp = item.TimeStamp, Movie = await _movieRepository.GetMovieBy3rd(item.Movie.IdTmdb!.Value) }));
+                .Select(async item => new HistoryMovie
+                {
+                    TimeStamp = item.TimeStamp,
+                    Movie = await _movieRepository.GetMovieBy3rd(item.Movie.IdTmdb!.Value),
+                    Rating = item.Rating == null ? null : Convert.ToDouble(item.Rating)
+                }));
             return new TMDbLib.Objects.General.SearchContainerWithId<HistoryMovie>
             {
                 Id = user.Id,
