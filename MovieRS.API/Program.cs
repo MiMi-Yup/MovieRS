@@ -24,6 +24,7 @@ builder.Services.ConfigureAuthentication(builder.Configuration);
 builder.Services.ConfigureExternalAPI();
 builder.Services.AddSwaggerGen(options => options.ConfigureSwaggerOptions());
 builder.Services.ConfigureRepository();
+builder.Services.ConfigureMail(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();

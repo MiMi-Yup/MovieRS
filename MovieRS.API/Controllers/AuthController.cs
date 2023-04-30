@@ -7,6 +7,7 @@ using MovieRS.API.Dtos;
 using MovieRS.API.Dtos.User;
 using MovieRS.API.Error;
 using MovieRS.API.Models;
+using MovieRS.API.Services.Mail;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Text;
@@ -20,13 +21,15 @@ namespace MovieRS.API.Controllers
         private readonly ILogger<AuthController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IMailService _mailService;
         private static IDictionary<string, TokenDto> TokenAccountMap = new Dictionary<string, TokenDto>();
 
-        public AuthController(ILogger<AuthController> logger, IUnitOfWork unitOfWork, IMapper mapper)
+        public AuthController(ILogger<AuthController> logger, IUnitOfWork unitOfWork, IMapper mapper, IMailService mailService)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _mailService = mailService;
         }
 
 
@@ -50,7 +53,8 @@ namespace MovieRS.API.Controllers
                 return Ok(new
                 {
                     data = userDto,
-                    token = user.token
+                    token = user.token,
+                    message = "Login successful"
                 });
             }
             catch (ApiException exception)
@@ -67,7 +71,7 @@ namespace MovieRS.API.Controllers
             if (item)
             {
                 return BadRequest(new ApiException("Email have already existed!!!", System.Net.HttpStatusCode.BadRequest));
-            };
+            }
 
             var code = new TokenDto { Value = GenerateCode(), ExpiredAt = DateTime.Now.AddMinutes(15), User = newUser };
             if (TokenAccountMap.ContainsKey(newUser.Email))
@@ -75,8 +79,9 @@ namespace MovieRS.API.Controllers
                 TokenAccountMap.Remove(newUser.Email);
             }
             TokenAccountMap.Add(newUser.Email, code);
-            /*await _mailService.SendRegisterMail(new UserDto { Email = user.Email }, code.Value);*/
-            Console.WriteLine($"New code {code.User.Email} - {code.Value}");
+
+            _ = _mailService.SendRegisterMail(new UserDto { Email = code.User.Email }, code.Value);
+
             return Ok(new
             {
                 message = "Send email verification successfully"
@@ -87,20 +92,27 @@ namespace MovieRS.API.Controllers
         [Route("verify-account")]
         public async Task<IActionResult> VerifyEmailToken(TokenVerificationDto data)
         {
-            TokenDto token;
-            if (!TokenAccountMap.TryGetValue(data.Email, out token!) || data.Code != token.Value || token.ExpiredAt < DateTime.Now)
+            if (!TokenAccountMap.TryGetValue(data.Email, out TokenDto? token) || data.Code != token.Value || token.ExpiredAt < DateTime.Now)
             {
                 return BadRequest(new
                 {
                     message = "Code is wrong or expired!"
                 });
             }
-            var registerData = token.User;
 
-            User newUser = await _unitOfWork.User.CreateNewUser(registerData);
+            await _unitOfWork.User.CreateNewUser(token.User);
+
             TokenAccountMap.Remove(data.Email);
-            UserDto returnUser = _mapper.Map<UserDto>(newUser);
-            return Ok(new ApiResponse<UserDto>(returnUser, "Verify account successfully!"));
+
+            (User? user, string token) user = await _unitOfWork.User.Login(new LoginDto { Email = token.User.Email, Password = token.User.Password });
+            UserDto returnUser = _mapper.Map<UserDto>(user.user);
+
+            return Ok(new
+            {
+                data = returnUser,
+                token = user.token,
+                message = "Login successful"
+            });
         }
 
         private string GenerateCode()

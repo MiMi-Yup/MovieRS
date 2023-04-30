@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using MovieRS.API.Models;
 using Microsoft.ML;
+using MovieRS.API.Services.Mail;
 
 namespace MovieRS.API.Extensions
 {
@@ -27,6 +28,10 @@ namespace MovieRS.API.Extensions
 
         public static void ConfigureExternalAPI(this IServiceCollection services) =>
             services.AddScoped<ITMDb, TMDbAPI>();
+
+        public static void ConfigureMail(this IServiceCollection services, IConfiguration configuration) => services
+            .AddSingleton<IMailService, MailService>()
+            .Configure<MailSettings>(options => configuration.GetSection("MailSettings").Bind(options));
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
