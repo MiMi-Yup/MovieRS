@@ -28,11 +28,15 @@ namespace MovieRS.API.Core.Repositories
 
         public async Task<User> CreateNewUser(RegisterUserDto registerUserDto)
         {
+            Country? country = string.IsNullOrWhiteSpace(registerUserDto.CountryCode) 
+                ? null 
+                : await _countryRepository.GetByCode(registerUserDto.CountryCode);
             User newUser = new User
             {
                 Username = registerUserDto.Username,
                 Password = HashHelper.Hash(registerUserDto.Password),
-                Email = registerUserDto.Email
+                Email = registerUserDto.Email,
+                CountryId = country?.Id
             };
             await this.Add(newUser);
             await _context.SaveChangesAsync();
@@ -61,7 +65,7 @@ namespace MovieRS.API.Core.Repositories
         {
             byte[]? hashPassword = HashHelper.Hash(loginDto.Password);
 
-            User? user = await dbSet.SingleOrDefaultAsync(item => item.Email == loginDto.Email && item.Password == hashPassword);
+            User? user = await dbSet.Include(u => u.Country).SingleOrDefaultAsync(item => item.Email == loginDto.Email && item.Password == hashPassword);
 
             if (user != null)
             {

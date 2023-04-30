@@ -36,7 +36,6 @@ namespace MovieRS.API.Controllers
             _mailService = mailService;
         }
 
-
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginUser)
@@ -124,40 +123,38 @@ namespace MovieRS.API.Controllers
 
         [HttpPost]
         [Route("lost-account")]
-        public async Task<IActionResult> LostAccount(LostAccountDto lostAccount)
+        public async Task<IActionResult> CheckCode(LostAccountDto lostAccount)
         {
-            User? user = await _unitOfWork.User.FindByEmail(lostAccount.Email);
-            if (user == null)
-                return NotFound();
-
-            var code = new TokenDto<ResetAccountDto>
+            if (string.IsNullOrWhiteSpace(lostAccount.Code))
             {
-                Value = GenerateCode(),
-                User = new ResetAccountDto
+                User? user = await _unitOfWork.User.FindByEmail(lostAccount.Email);
+                if (user == null)
+                    return NotFound();
+
+                var code = new TokenDto<ResetAccountDto>
                 {
-                    Email = user.Email
+                    Value = GenerateCode(),
+                    User = new ResetAccountDto
+                    {
+                        Email = user.Email
+                    }
+                };
+
+                if (TokenResetAccountMap.ContainsKey(user.Email))
+                {
+                    TokenResetAccountMap.Remove(user.Email);
                 }
-            };
+                TokenResetAccountMap.Add(user.Email, code);
 
-            if (TokenResetAccountMap.ContainsKey(user.Email))
-            {
-                TokenResetAccountMap.Remove(user.Email);
+                _ = _mailService.SendForgotPasswordEmail(new UserDto { Email = code.User.Email }, code.Value);
+
+                return Ok(new
+                {
+                    message = "Send email verification successfully"
+                });
+
             }
-            TokenResetAccountMap.Add(user.Email, code);
-
-            _ = _mailService.SendForgotPasswordEmail(new UserDto { Email = code.User.Email }, code.Value);
-
-            return Ok(new
-            {
-                message = "Send email verification successfully"
-            });
-        }
-
-        [HttpPost]
-        [Route("check-code")]
-        public IActionResult CheckCode(LostAccountDto lostAccount)
-        {
-            if (TokenResetAccountMap.ContainsKey(lostAccount.Email) && TokenResetAccountMap[lostAccount.Email].Value == lostAccount.Code)
+            else if (TokenResetAccountMap.ContainsKey(lostAccount.Email) && TokenResetAccountMap[lostAccount.Email].Value == lostAccount.Code)
             {
                 TokenDto<ResetAccountDto> reset = TokenResetAccountMap[lostAccount.Email];
                 reset.User!.Token = HashHelper.HashToString(HttpContext.Request.Host.Value + DateTime.Now.ToString());
@@ -180,7 +177,6 @@ namespace MovieRS.API.Controllers
         public async Task<IActionResult> ResetAccount(ResetAccountDto resetAccount)
         {
             if (!TokenResetAccountMap.TryGetValue(resetAccount.Email, out TokenDto<ResetAccountDto>? token)
-                || resetAccount.Code != token.Value
                 || resetAccount.Token != token.User?.Token
                 || token.ExpiredAt < DateTime.Now)
                 return BadRequest(new
@@ -203,13 +199,13 @@ namespace MovieRS.API.Controllers
             {
                 data = userDto,
                 token = user.token,
-                message = "Restore successful"
+                message = "Reset successful"
             });
         }
 
         private string GenerateCode()
         {
-            return new Random().Next(1000, 9999).ToString("D4");
+            return new Random().Next(10000, 99999).ToString("D5");
         }
     }
 }
