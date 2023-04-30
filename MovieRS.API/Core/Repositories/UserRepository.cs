@@ -78,20 +78,10 @@ namespace MovieRS.API.Core.Repositories
 
         private string GenerateToken(User account)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]!);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim("UserId", account.Id.ToString()),
-                    new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
-                }),
-                Expires = DateTime.Now.AddMonths(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            return _configuration.GenerateToken(new Dictionary<string, string> {
+                { "UserId", account.Id.ToString() },
+                { ClaimTypes.NameIdentifier, account.Id.ToString() }
+            });
         }
 
         public async Task<bool> UpdatePassword(LoginDto updateAccount)

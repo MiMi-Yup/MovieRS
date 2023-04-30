@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MovieRS.API.Attributes;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;
@@ -11,6 +12,8 @@ using MovieRS.API.Models;
 using MovieRS.API.Services.Mail;
 using Newtonsoft.Json.Linq;
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -24,16 +27,23 @@ namespace MovieRS.API.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IMailService _mailService;
+        private readonly IConfiguration _configuration;
         private static readonly IDictionary<string, TokenDto<RegisterUserDto>> TokenAccountMap = new Dictionary<string, TokenDto<RegisterUserDto>>();
         private static readonly IDictionary<string, TokenDto<ResetAccountDto>> TokenResetAccountMap = new Dictionary<string, TokenDto<ResetAccountDto>>();
         private static readonly SHA256 SHA256 = SHA256.Create();
 
-        public AuthController(ILogger<AuthController> logger, IUnitOfWork unitOfWork, IMapper mapper, IMailService mailService)
+        public AuthController(
+            ILogger<AuthController> logger,
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IConfiguration configuration,
+            IMailService mailService)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _mailService = mailService;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -123,9 +133,10 @@ namespace MovieRS.API.Controllers
 
         [HttpPost]
         [Route("lost-account")]
-        public async Task<IActionResult> CheckCode(LostAccountDto lostAccount)
+        public async Task<IActionResult> LostAccount(LostAccountDto lostAccount)
         {
-            if (string.IsNullOrWhiteSpace(lostAccount.Code))
+            if (string.IsNullOrWhiteSpace(lostAccount.Code) 
+                || !TokenResetAccountMap.ContainsKey(lostAccount.Email))
             {
                 User? user = await _unitOfWork.User.FindByEmail(lostAccount.Email);
                 if (user == null)
@@ -136,7 +147,7 @@ namespace MovieRS.API.Controllers
                     Value = GenerateCode(),
                     User = new ResetAccountDto
                     {
-                        Email = user.Email
+                        Token = user.Email
                     }
                 };
 
@@ -146,7 +157,7 @@ namespace MovieRS.API.Controllers
                 }
                 TokenResetAccountMap.Add(user.Email, code);
 
-                _ = _mailService.SendForgotPasswordEmail(new UserDto { Email = code.User.Email }, code.Value);
+                _ = _mailService.SendForgotPasswordEmail(new UserDto { Email = code.User.Token }, code.Value);
 
                 return Ok(new
                 {
@@ -154,10 +165,15 @@ namespace MovieRS.API.Controllers
                 });
 
             }
-            else if (TokenResetAccountMap.ContainsKey(lostAccount.Email) && TokenResetAccountMap[lostAccount.Email].Value == lostAccount.Code)
+            else if (TokenResetAccountMap.ContainsKey(lostAccount.Email) 
+                && TokenResetAccountMap[lostAccount.Email].Value == lostAccount.Code)
             {
                 TokenDto<ResetAccountDto> reset = TokenResetAccountMap[lostAccount.Email];
-                reset.User!.Token = HashHelper.HashToString(HttpContext.Request.Host.Value + DateTime.Now.ToString());
+                reset.User!.Token = _configuration.GenerateToken(new Dictionary<string, string> {
+                    { "Email", reset.User.Token },
+                    { "IP", HttpContext.Request.Host.Value },
+                    { "Time", DateTime.Now.ToString() }
+                });
                 reset.ExpiredAt = DateTime.Now.AddMinutes(15);
 
                 return Ok(new
@@ -176,7 +192,17 @@ namespace MovieRS.API.Controllers
         [Route("reset-account")]
         public async Task<IActionResult> ResetAccount(ResetAccountDto resetAccount)
         {
-            if (!TokenResetAccountMap.TryGetValue(resetAccount.Email, out TokenDto<ResetAccountDto>? token)
+            IDictionary<string, string>? parseToken = null;
+            try
+            {
+                parseToken = _configuration.ParseToken(resetAccount.Token);
+            }
+            catch (Exception)
+            {
+                return BadRequest(new { message = "JWT Wrong" });
+            }
+
+            if (!parseToken.TryGetValue("Email", out string? email) || !TokenResetAccountMap.TryGetValue(email, out TokenDto<ResetAccountDto>? token)
                 || resetAccount.Token != token.User?.Token
                 || token.ExpiredAt < DateTime.Now)
                 return BadRequest(new
@@ -184,13 +210,13 @@ namespace MovieRS.API.Controllers
                     message = "Code is wrong or expired!"
                 });
 
-            LoginDto login = new LoginDto { Email = resetAccount.Email, Password = resetAccount.Password };
+            LoginDto login = new LoginDto { Email = email, Password = resetAccount.Password };
             bool success = await _unitOfWork.User.UpdatePassword(login);
 
             if (!success)
                 return BadRequest(new { message = "Something wrong" });
 
-            TokenAccountMap.Remove(resetAccount.Email);
+            TokenAccountMap.Remove(email);
 
             (User? user, string token) user = await _unitOfWork.User.Login(login);
 
