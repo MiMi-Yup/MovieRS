@@ -63,7 +63,9 @@ namespace MovieRS.API.Core.Repositories
                     .DistinctBy(item => item.Id)
                     .Where(item => item.Site == "YouTube" && item.Type == "Trailer")
                     .ToList();
-                if (!filteredVideo.Any())
+
+                //Test
+                if (!filteredVideo.Any() || true)
                     filteredVideo.Add(new TMDbLib.Objects.General.Video
                     {
                         Iso_639_1 = "en",
