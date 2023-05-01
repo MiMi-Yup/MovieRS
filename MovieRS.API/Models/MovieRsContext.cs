@@ -56,7 +56,7 @@ public partial class MovieRsContext : DbContext
 
             entity.ToTable("FAVOURITE");
 
-            entity.Property(e => e.NotUse).HasColumnName("NOT_USE");
+            entity.Property(e => e.TimeStamp).HasColumnType("datetime");
 
             entity.HasOne(d => d.Movie).WithMany(p => p.Favourites)
                 .HasForeignKey(d => d.MovieId)

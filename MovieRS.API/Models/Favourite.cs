@@ -9,7 +9,7 @@ public partial class Favourite
 
     public int MovieId { get; set; }
 
-    public byte? NotUse { get; set; }
+    public DateTime? TimeStamp { get; set; }
 
     public virtual Movie Movie { get; set; } = null!;
 

@@ -31,20 +31,25 @@ namespace MovieRS.API.Core.Repositories
             return false;
         }
 
-        public async Task<SearchContainerWithId<TMDbLib.Objects.Movies.Movie>> GetFavourites(Models.User user, int page = 1, int take = 0)
+        public async Task<SearchContainerWithId<UserFavourite>> GetFavourites(Models.User user, int page = 1, int take = 0)
         {
             const int itemOfPage = 10;
-            List<Models.Favourite> favourites = await dbSet.Include(f => f.Movie)
+            List<Models.Favourite> favourites = await dbSet.Include(m => m.Movie)
                 .Where(item => item.UserId == user.Id && item.Movie.IdTmdb != null)
+                .OrderByDescending(item => item.TimeStamp)
                 .Skip((page > 1 ? page - 1 : 0) * itemOfPage)
                 .Take(take > 0 ? take : itemOfPage).AsNoTracking().ToListAsync();
-            return new SearchContainerWithId<TMDbLib.Objects.Movies.Movie>
+            return new SearchContainerWithId<UserFavourite>
             {
                 Id = user.Id,
                 Page = page,
                 TotalPages = (int)Math.Ceiling(favourites.Count() * 1.0 / itemOfPage),
                 TotalResults = favourites.Count,
-                Results = (await Task.WhenAll(favourites.Select(item => _movieRepository.GetMovieBy3rd(item.Movie.IdTmdb!.Value)))).ToList()
+                Results = (await Task.WhenAll(favourites.Select(async item => new UserFavourite
+                {
+                    TimeStamp = item.TimeStamp,
+                    Movie = await _movieRepository.GetMovieBy3rd(item.Movie.IdTmdb!.Value)
+                }))).ToList()
             };
         }
 
@@ -60,7 +65,12 @@ namespace MovieRS.API.Core.Repositories
                 }
                 Models.Favourite? favFind = await dbSet.SingleOrDefaultAsync(item => item.UserId == newFavourite.UserId && item.MovieId == find.Id);
                 if (favFind != null) return 1;
-                if (await this.Add(new Models.Favourite { UserId = newFavourite.UserId, MovieId = find.Id }))
+                if (await this.Add(new Models.Favourite
+                {
+                    UserId = newFavourite.UserId,
+                    MovieId = find.Id,
+                    TimeStamp = DateTime.Now
+                }))
                 {
                     await _context.SaveChangesAsync();
                     return 0;

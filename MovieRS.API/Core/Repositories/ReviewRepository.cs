@@ -52,7 +52,7 @@ namespace MovieRS.API.Core.Repositories
             const int MAX_ITEM_OF_PAGE = 10;
             IQueryable<Models.Review> query = dbSet.Include(u => u.User).Include(m => m.Movie)
                 .Where(item => item.UserId == user.Id && !string.IsNullOrWhiteSpace(item.Content))
-                .AsNoTracking();
+                .AsNoTracking().OrderByDescending(item => item.TimeStamp);
             int count = query.Count();
             page = page > 1 ? page : 1;
             return new TMDbLib.Objects.General.SearchContainerWithId<UserReview>

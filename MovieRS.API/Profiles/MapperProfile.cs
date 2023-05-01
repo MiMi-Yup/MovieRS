@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;
+using MovieRS.API.Dtos.Favourite;
 using MovieRS.API.Dtos.History;
 using MovieRS.API.Dtos.Movie;
 using MovieRS.API.Dtos.Recommendation;
@@ -94,6 +95,10 @@ namespace MovieRS.API.Profiles
             CreateMap<UserReview, UserReviewDto>();
 
             CreateMap<TMDbLib.Objects.General.SearchContainerWithId<UserReview>, SearchContainerWithIdDto<UserReviewDto>>();
+
+            CreateMap<UserFavourite, FavouriteDto>();
+
+            CreateMap<TMDbLib.Objects.General.SearchContainerWithId<UserFavourite>, SearchContainerWithIdDto<FavouriteDto>>();
         }
     }
 }

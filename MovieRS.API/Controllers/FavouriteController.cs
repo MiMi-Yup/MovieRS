@@ -30,14 +30,14 @@ namespace MovieRS.API.Controllers
 
         [HttpGet]
         [Route("")]
-        [Produces(typeof(ApiResponse<SearchContainerWithIdDto<MovieDto>>))]
+        [Produces(typeof(ApiResponse<SearchContainerWithIdDto<FavouriteDto>>))]
         public async Task<IActionResult> GetFavourites([FromQuery] int? page, [FromQuery] int? take)
         {
             User? user = HttpContext.Items["User"] as User;
             if (user == null)
                 return Unauthorized(new ApiException("User not exists", System.Net.HttpStatusCode.Unauthorized));
-            SearchContainerWithId<TMDbLib.Objects.Movies.Movie> movies = await _unitOfWork.Favorite.GetFavourites(user, page ?? 1, take ?? 0);
-            return Ok(new ApiResponse<SearchContainerWithIdDto<MovieDto>>(_mapper.Map<SearchContainerWithIdDto<MovieDto>>(movies), "OK"));
+            SearchContainerWithId<UserFavourite> movies = await _unitOfWork.Favorite.GetFavourites(user, page ?? 1, take ?? 0);
+            return Ok(new ApiResponse<SearchContainerWithIdDto<FavouriteDto>>(_mapper.Map<SearchContainerWithIdDto<FavouriteDto>>(movies), "OK"));
         }
 
         [HttpPost]

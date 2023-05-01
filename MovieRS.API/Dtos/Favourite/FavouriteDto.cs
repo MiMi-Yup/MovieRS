@@ -4,7 +4,7 @@ namespace MovieRS.API.Dtos.Favourite
 {
     public class FavouriteDto
     {
-        public int UserId { get; set; }
-        public IList<MovieDto>? Movies { get; set; }
+        public DateTime? TimeStamp { get; set; }
+        public MovieDto? Movie { get; set; }
     }
 }
