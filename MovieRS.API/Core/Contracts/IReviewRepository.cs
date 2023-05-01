@@ -9,7 +9,7 @@ namespace MovieRS.API.Core.Contracts
         Task<TMDbLib.Objects.Reviews.ReviewBaseExtension?> GetReviewById(int id);
         Task<List<Models.Review>> GetReviewsByIdMovie(int id);
         Task<bool> NewReview(Models.User user, Models.Movie movie, NewReviewDto review);
-        Task<bool> UpdateReview(Models.User user, NewReviewDto newReview);
+        Task<bool> UpdateReview(Models.User user, UpdateReviewDto newReview);
         Task<bool> DeleteReview(Models.User user, int id);
     }
 

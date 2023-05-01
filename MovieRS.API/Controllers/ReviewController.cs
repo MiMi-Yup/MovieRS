@@ -80,7 +80,7 @@ namespace MovieRS.API.Controllers
 
         [HttpPut]
         [Route("")]
-        public async Task<IActionResult> UpdateReview(NewReviewDto updateReview)
+        public async Task<IActionResult> UpdateReview(UpdateReviewDto updateReview)
         {
             try
             {

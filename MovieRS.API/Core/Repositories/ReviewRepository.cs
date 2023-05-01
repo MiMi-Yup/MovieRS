@@ -92,15 +92,17 @@ namespace MovieRS.API.Core.Repositories
             return true;
         }
 
-        public async Task<bool> UpdateReview(User user, NewReviewDto newReview)
+        public async Task<bool> UpdateReview(User user, UpdateReviewDto updateReview)
         {
-            Models.Review? review = await dbSet.FindAsync(newReview.Id);
+            if (!int.TryParse(updateReview.Id, out int IdReview))
+                return false;
+            Models.Review? review = await dbSet.FindAsync(IdReview);
             if (review == null || review.UserId != user.Id)
                 return false;
-            review.Content = newReview.Content;
-            review.Rating = newReview.Rating == null
+            review.Content = updateReview.Content;
+            review.Rating = updateReview.Rating == null
                 ? review.Rating
-                : Convert.ToDecimal(newReview.Rating);
+                : Convert.ToDecimal(updateReview.Rating);
             await _context.SaveChangesAsync();
             return true;
         }
