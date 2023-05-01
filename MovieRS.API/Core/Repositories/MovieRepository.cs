@@ -70,7 +70,7 @@ namespace MovieRS.API.Core.Repositories
                     {
                         Iso_639_1 = "en",
                         Site = "Custom",
-                        Key = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                        Key = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
                         Type = "Trailer"
                     });
 
