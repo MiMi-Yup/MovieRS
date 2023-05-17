@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieRS.API.Core.Contracts;
 using MovieRS.API.Dtos;
+using MovieRS.API.Dtos.Recommendation;
 using MovieRS.API.Dtos.User;
 using MovieRS.API.Error;
 using MovieRS.API.Models;
@@ -35,7 +36,7 @@ namespace MovieRS.API.Controllers
                 : Ok(new ApiResponse<UserDto>(_mapper.Map<UserDto>(user), "OK"));
         }
 
-        [HttpPost]
+        [HttpPut]
         [Route("change-password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDto change)
         {
@@ -46,6 +47,18 @@ namespace MovieRS.API.Controllers
             {
                 message = "Wrong old password"
             });
+        }
+
+        [HttpGet]
+        [Route("recommendation")]
+        [Produces(typeof(ApiResponse<ResultRecommendationDto>))]
+        public async Task<IActionResult> Recommendation([FromQuery] int? takeMax)
+        {
+            User? user = HttpContext.Items["User"] as User;
+            if (user == null)
+                return Unauthorized(new ApiException("User not supported this feature", System.Net.HttpStatusCode.Unauthorized));
+            var movie = await _unitOfWork.Recommend.GetUserMovieRecommendation(user!, takeMax ?? 0);
+            return Ok(new ApiResponse<ResultRecommendationDto>(_mapper.Map<ResultRecommendationDto>(movie), "OK"));
         }
     }
 }
