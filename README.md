@@ -64,58 +64,32 @@ Phân tích ma trận thành nhân tử, hay còn gọi là Matrix Factorization
 
 Ý tưởng chính của Matrix Factorization áp dụng cho Recommendation Systems là giả định tồn tại các tính chất ẩn mô tả sự liên quan giữa các items và users. Tính chất ẩn có thể là đặc điểm mô tả của items, và cũng có thể là một sự kết hợp của những đặc điểm mô tả này hoặc cũng có thể là bất cứ điều gì mà ta không thực sự cần đặt tên. Mỗi item sẽ mang tính chất ẩn ở một mức độ nào đó tương ứng với các hệ số trong vector X của nó, hệ số càng cao tương ứng với việc mang tính chất đó càng cao. Tương tự, mỗi user cũng sẽ có xu hướng thích những tính chất ẩn nào đó và được mô tả bởi các hệ số trong vector W của nó.
 
-$$
-Y \approx
-\begin{bmatrix}
-  x_1w_1       & x_1w_2   & x_1w_3   & \cdots  & x_1w_N  \\
-  x_2w_1       & x_2w_2   & x_2w_3   & \cdots  & x_2w_N  \\
-  \vdots  & \vdots  & \vdots  & \ddots  & \vdots \\
-  x_Mw_1       & x_Mw_1   & x_Mw_1   & \cdots  & x_Mw_N  \\
-\end{bmatrix}
-= \begin{bmatrix}
-x_1 \\
-  x_2\\
-  \vdots\\
-  x_M \\
-\end{bmatrix}
-\begin{bmatrix}
-  w_1       & w_2   & w_3   & \cdots  & w_N  \\
-\end{bmatrix}
-= XW
-$$
+$$Y\approx\{\left\lbrack\matrix{x_1w_1&x_1w_2&x_1w_3&\cdots&x_1w_N\cr x_2w_1&x_2w_2&x_2w_3&\cdots&x_2w_N\cr\vdots&\vdots&\vdots&\ddots&\vdots\cr x_Mw_1&x_Mw_1&x_Mw_1&\cdots&x_Mw_N}\right\rbrack}=\left\lbrack\matrix{x_1\cr x_2\cr\vdots\cr x_M}\right\rbrack\left\lbrack\matrix{w_1&w_2&w_3&\cdots&w_N}\right\rbrack={XW}$$
 
 Sau khi tìm được các ma trận items X và ma trận users W, giá trị ước lượng rating của một user j lên một item i bằng biểu thức
 
-$$
-\^{y_{ij}} = x_i^Tw_y
-$$
+$$\^{y_{ij}}=x_i^Tw_y$$
 
 Giá trị kết quả của biểu thức sẽ cao nếu các thành phần tương ứng của X và W đều cao. Điều này nghĩa là item mang các tính chất ẩn mà user thích, vậy thì nên gợi ý item này cho user.
 Xây dựng hàm mất mát
 Việc xây dựng hàm mất mát cũng được dựa trên các thành phần đã được điền của Utility Matrix Y dựa trên biểu thức sau:
 
-$$
-\mathcal{L}(X,W) = \frac{1}{2s}\Sigma_{n=1}^N\Sigma_{m:r_{mn}}(y_{mn} - x_mw_n)^2+\frac{\lambda}{2}(\|X\|_F^2+\|W\|_F^2)
-$$
+$$\mathcal{L}(X,W)=\frac{1}{2s}\Sigma_{n=1}^N\Sigma_{m:r_{mn}}(y_{mn}-x_mw_n)^2+\frac{\lambda}{2}(||X||_F^2+||W||_F^2)$$
 
 <center>Hàm mất mát của thuật toán Matrix Factoriazrtion</center>
 
-Trong đó $r_{mn}$ = 1 nếu item thứ m đã được đánh giá bởi user thứ n, $\|\bullet\|_F^2$ là căn bậc hai của tổng bình phương tất cả các phần tử của ma trận, s là toàn bộ số ratings đã có.
+Trong đó $r_{mn}$ = 1 nếu item thứ m đã được đánh giá bởi user thứ n, $||\bullet||_F^2$ là căn bậc hai của tổng bình phương tất cả các phần tử của ma trận, s là toàn bộ số ratings đã có.
 Việc tối ưu đồng thời X,W là tương đối phức tạp, thay vào đó, phương pháp được sử dụng là lần lượt tối ưu một ma trận trong khi cố định ma trận kia, tới khi hội tụ. Ví dụ:
 
 Khi cố định X, việc tối ưu W đưa về việc tối ưu hàm:
 
-$$
-\mathcal{L}(W) = \frac{1}{2s}\Sigma_{n=1}^N\Sigma_{m:r_{mn}}(y_{mn} - x_mw_n)^2+\frac{\lambda}{2}\|W\|_F^2
-$$
+$$\mathcal{L}(W)=\frac{1}{2s}\Sigma_{n=1}^N\Sigma_{m:r_{mn}}(y_{mn}-x_mw_n)^2+\frac{\lambda}{2}||W||_F^2$$
 
 <center>Hàm tối ưu W khi cố định X</center>
 
 Khi cố định W, việc tối ưu X đưa về viêc tối ưu hàm:
 
-$$
-\mathcal{L}(X) = \frac{1}{2s}\Sigma_{n=1}^N\Sigma_{m:r_{mn}}(y_{mn} - x_mw_n)^2+\frac{\lambda}{2}\|X\|_F^2
-$$
+$$\mathcal{L}(X)=\frac{1}{2s}\Sigma_{n=1}^N\Sigma_{m:r_{mn}}(y_{mn}-x_mw_n)^2+\frac{\lambda}{2}||X||_F^2$$
 
 <center>Hàm tối ưu X khi cố định W</center>
 
