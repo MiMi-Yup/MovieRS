@@ -19,15 +19,11 @@ public partial class MovieRsContext : DbContext
 
     public virtual DbSet<Favourite> Favourites { get; set; }
 
-    public virtual DbSet<Genre> Genres { get; set; }
-
     public virtual DbSet<History> Histories { get; set; }
 
     public virtual DbSet<Movie> Movies { get; set; }
 
     public virtual DbSet<Param> Params { get; set; }
-
-    public virtual DbSet<RawTrainingModel> RawTrainingModels { get; set; }
 
     public virtual DbSet<Review> Reviews { get; set; }
 
@@ -69,16 +65,6 @@ public partial class MovieRsContext : DbContext
                 .HasConstraintName("FkFavoriteUser");
         });
 
-        modelBuilder.Entity<Genre>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__GENRE__3214EC078226D474");
-
-            entity.ToTable("GENRE");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.Name).HasMaxLength(100);
-        });
-
         modelBuilder.Entity<History>(entity =>
         {
             entity.HasKey(e => new { e.UserId, e.MovieId }).HasName("PkHistory");
@@ -103,23 +89,6 @@ public partial class MovieRsContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__MOVIE__3214EC07CC466EE7");
 
             entity.ToTable("MOVIE");
-
-            entity.HasMany(d => d.Genres).WithMany(p => p.Movies)
-                .UsingEntity<Dictionary<string, object>>(
-                    "DetailGenre",
-                    r => r.HasOne<Genre>().WithMany()
-                        .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FKDetailGenreGenre"),
-                    l => l.HasOne<Movie>().WithMany()
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FKDetailGenreMovie"),
-                    j =>
-                    {
-                        j.HasKey("MovieId", "GenreId").HasName("PkDetailGenre");
-                        j.ToTable("DETAIL_GENRE");
-                    });
         });
 
         modelBuilder.Entity<Param>(entity =>
@@ -131,20 +100,6 @@ public partial class MovieRsContext : DbContext
             entity.Property(e => e.Id)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-        });
-
-        modelBuilder.Entity<RawTrainingModel>(entity =>
-        {
-            entity.HasKey(e => new { e.UserId, e.MovieId }).HasName("PkRawTrainingModel");
-
-            entity.ToTable("RAW_TRAINING_MODEL");
-
-            entity.Property(e => e.Rating).HasColumnType("decimal(2, 1)");
-
-            entity.HasOne(d => d.Movie).WithMany(p => p.RawTrainingModels)
-                .HasForeignKey(d => d.MovieId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FkRawTrainingModelMovie");
         });
 
         modelBuilder.Entity<Review>(entity =>

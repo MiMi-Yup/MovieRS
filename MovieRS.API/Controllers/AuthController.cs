@@ -1,21 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using MovieRS.API.Attributes;
 using MovieRS.API.Core.Contracts;
-using MovieRS.API.Dtos;
 using MovieRS.API.Dtos.User;
 using MovieRS.API.Error;
 using MovieRS.API.Helper;
 using MovieRS.API.Models;
 using MovieRS.API.Services.Mail;
-using Newtonsoft.Json.Linq;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace MovieRS.API.Controllers
 {
@@ -93,7 +84,7 @@ namespace MovieRS.API.Controllers
             TokenAccountMap.Add(newUser.Email, code);
 
             _ = _mailService.SendRegisterMail(new UserDto { Email = code.User.Email }, code.Value);
-
+            Console.Write(code.Value);
             return Ok(new
             {
                 message = "Send email verification successfully"

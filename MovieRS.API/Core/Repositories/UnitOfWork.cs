@@ -9,6 +9,7 @@ namespace MovieRS.API.Core.Repositories
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly MovieRsContext _context;
+        private readonly RsContext _rsContext;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
@@ -26,9 +27,10 @@ namespace MovieRS.API.Core.Repositories
         public IFavouriteRepository Favorite { get; private set; }
         public IVideoAPI VideoAPI { get; private set; }
 
-        public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration, ITMDb tmdb, MLContext mlContext)
+        public UnitOfWork(MovieRsContext context, ILoggerFactory loggerFactory, IMapper mapper, IConfiguration configuration, ITMDb tmdb, MLContext mlContext, RsContext rsContext)
         {
             _context = context;
+            _rsContext = rsContext;
             _mapper = mapper;
             _configuration = configuration;
             _logger = loggerFactory.CreateLogger("logs");
@@ -44,7 +46,7 @@ namespace MovieRS.API.Core.Repositories
             Image = new ImageRepository(_tmdb);
             HistoryMovie = new HistoryMovieRepository(_context, _logger, _mapper, Movie);
             Favorite = new FavouriteRepository(_context, _logger, _mapper, Movie);
-            Recommend = new RecommendRepository(_logger, _mapper, _configuration, Movie, HistoryMovie, Favorite, mlContext);
+            Recommend = new RecommendRepository(_logger, _mapper, _configuration, Movie, HistoryMovie, Review, mlContext, _rsContext);
         }
 
 

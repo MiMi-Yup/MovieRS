@@ -20,6 +20,11 @@ builder.Services.AddDbContext<MovieRsContext>(options =>
     : builder.Configuration.GetConnectionString("Default");
     options.UseSqlServer(connectionString);
 });
+builder.Services.AddDbContext<RsContext>(options =>
+{
+    string? connectionString = string.Format(builder.Configuration.GetConnectionString("RS"), new FileInfo(Path.Combine(Environment.CurrentDirectory, "wwwroot")).FullName);
+    options.UseSqlite(connectionString);
+});
 builder.Services.ConfigureAuthentication(builder.Configuration);
 builder.Services.ConfigureExternalAPI();
 builder.Services.AddSwaggerGen(options => options.ConfigureSwaggerOptions());

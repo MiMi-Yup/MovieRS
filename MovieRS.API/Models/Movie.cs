@@ -17,9 +17,5 @@ public partial class Movie
 
     public virtual ICollection<History> Histories { get; set; } = new List<History>();
 
-    public virtual ICollection<RawTrainingModel> RawTrainingModels { get; set; } = new List<RawTrainingModel>();
-
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-
-    public virtual ICollection<Genre> Genres { get; set; } = new List<Genre>();
 }

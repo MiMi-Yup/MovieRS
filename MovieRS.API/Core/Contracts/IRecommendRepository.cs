@@ -5,7 +5,6 @@ namespace MovieRS.API.Core.Contracts
     public interface IRecommendRepository
     {
         Task<ResultRecommendation> GetUserMovieRecommendation(Models.User user, int takeMax = 0);
-        Task<ResultRecommendation> GetMovieGenreRecommendation(Models.User user, int takeMax = 0);
     }
 
     public class Recommendation
