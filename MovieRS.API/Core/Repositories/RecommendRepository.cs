@@ -59,7 +59,7 @@ namespace MovieRS.API.Core.Repositories
                 var rsHistory = filterHistory.Where(item => item != null).SelectMany(item => item!.Results);
 
                 rsReview.ToList().AddRange(rsHistory);
-                var result = rsReview.DistinctBy(item => item.Id).OrderByDescending(item => item.VoteAverage).Take(takeMax);
+                var result = rsReview.DistinctBy(item => item.Id).OrderByDescending(item => item.VoteAverage).Where(item => item.VoteCount > 10).Take(takeMax);
 
                 if (result.Count() > 0)
                 {
