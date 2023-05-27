@@ -99,10 +99,6 @@ namespace MovieRS.API.Profiles
             CreateMap<UserFavourite, FavouriteDto>();
 
             CreateMap<TMDbLib.Objects.General.SearchContainerWithId<UserFavourite>, SearchContainerWithIdDto<FavouriteDto>>();
-
-            CreateMap<(TMDbLib.Objects.Movies.Movie, List<TMDbLib.Objects.Movies.Movie>), MovieWithSimilarDto>()
-                .ForMember(item => item.Movie, options => options.MapFrom(item => item.Item1))
-                .ForMember(item => item.SimilarMovies, options => options.MapFrom(item => item.Item2));
         }
     }
 }

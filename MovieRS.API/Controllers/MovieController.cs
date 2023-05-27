@@ -40,14 +40,13 @@ namespace MovieRS.API.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        [Produces(typeof(ApiResponse<MovieWithSimilarDto>))]
+        [Produces(typeof(ApiResponse<MovieDto>))]
         public async Task<IActionResult> Movie(int id)
         {
             var movie = await _unitOfWork.Movie.GetMovieBy3rd(id);
-            var recommendForMovie = await _unitOfWork.Movie.GetRecommendation(id);
             return movie == null
                 ? NotFound(new ApiException("Id not found", System.Net.HttpStatusCode.NotFound))
-                : Ok(new ApiResponse<MovieWithSimilarDto>(_mapper.Map<MovieWithSimilarDto>((movie, recommendForMovie?.Results)), "OK"));
+                : Ok(new ApiResponse<MovieDto>(_mapper.Map<MovieDto>(movie), "OK"));
         }
 
         [HttpGet]
