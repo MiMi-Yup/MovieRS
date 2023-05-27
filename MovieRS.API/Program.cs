@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MovieRS.API.Error;
 using MovieRS.API.Extensions;
 using MovieRS.API.Middlewares;
 using MovieRS.API.Models;
@@ -33,6 +34,24 @@ builder.Services.ConfigureMail(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<MovieRsContext>();
+    try
+    {
+        await context.Database.MigrateAsync();
+        if (!await context.Countries.AnyAsync())
+        {
+            await context.Countries.OnModelCreatingPartial();
+            await context.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+
+    }
+}
 
 // Configure the HTTP request pipeline.
 /*if (app.Environment.IsDevelopment())*/

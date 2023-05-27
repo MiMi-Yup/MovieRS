@@ -7,6 +7,7 @@ using MovieRS.API.Helper;
 using MovieRS.API.Models;
 using MovieRS.API.Services.Mail;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace MovieRS.API.Controllers
 {
