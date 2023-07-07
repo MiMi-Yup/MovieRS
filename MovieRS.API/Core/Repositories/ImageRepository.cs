@@ -14,7 +14,7 @@ namespace MovieRS.API.Core.Repositories
             _tmdb.Client.GetConfigAsync().Wait();
         }
 
-        public async Task<byte[]> GetImage(string path, string size = "w500", bool useSsl = true)
+        public async Task<byte[]> GetImage(string path, string size = "w154", bool useSsl = true)
         {
             if (!widthAccept.Contains(size))
                 new ApiException("Invalid request width", System.Net.HttpStatusCode.BadRequest);
